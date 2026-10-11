@@ -117,7 +117,10 @@ void Game::applyDefaultFeaturesForVersion(Uint32 clientVersion, Uint32 fileVersi
 		enableGameFeature(GAME_FEATURE_NEWOUTFITS);
 	}
 	if(clientVersion >= 790)
+	{
 		enableGameFeature(GAME_FEATURE_WRITABLE_DATE);
+		enableGameFeature(GAME_FEATURE_QUEST_LOG);
+	}
 	if(clientVersion >= 820)
 		enableGameFeature(GAME_FEATURE_NPC_INTERFACE);
 	if(clientVersion >= 830)
@@ -989,6 +992,9 @@ void Game::sendChannelExclude(const std::string& target, Uint16 channelId)
 
 void Game::sendOpenQuestLog()
 {
+	if(!hasGameFeature(GAME_FEATURE_QUEST_LOG))
+		return;
+
 	if(g_engine.isIngame())
 	{
 		ProtocolGame* game = GET_SAFE_PROTOCOLGAME;

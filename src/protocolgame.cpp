@@ -2616,6 +2616,7 @@ void ProtocolGame::parsePlayerModes(InputMessage& msg)
 	if(g_game.hasGameFeature(GAME_FEATURE_PVP_MODE))
 		pvpMode = msg.getU8();
 
+	safeMode = (safeMode != 0 ? SECUREMODE_SECURE : SECUREMODE_UNSECURE);
 	g_game.processPlayerModes(fightMode, chaseMode, safeMode, pvpMode);
 }
 
@@ -6991,7 +6992,8 @@ void ProtocolGame::sendAttackModes(Uint8 attackMode, Uint8 chaseMode, Uint8 secu
 	msg.addU8(GameAttackModesOpcode);
 	msg.addU8(attackMode);
 	msg.addU8(chaseMode);
-	msg.addU8(secureMode);
+	//On the wire 1 means secure mode on, the client stores SECUREMODE_SECURE as 0
+	msg.addU8(secureMode == SECUREMODE_SECURE ? 1 : 0);
 	if(g_game.hasGameFeature(GAME_FEATURE_PVP_MODE))
 		msg.addU8(pvpMode);
 	onSend(msg);
