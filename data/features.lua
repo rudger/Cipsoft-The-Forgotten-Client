@@ -45,6 +45,11 @@ ClientFeatures = {
                 -- Quests button in the inventory and Ctrl+U.
                 -- The server does not answer quest log requests yet.
                 GameQuestLog = true,
+
+                -- "!" button (Receive hint) in the top right corner of the game
+                -- window, as in the 7.72 client. Needs the 7.72 Tibia.pic.
+                -- Shown only, it does nothing yet.
+                GameHintButton = true,
             }
         },
 

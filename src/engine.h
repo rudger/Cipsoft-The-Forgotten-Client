@@ -436,6 +436,7 @@ class Engine
 		iRect m_leftPanelRemRect;
 		iRect m_rightPanelAddRect;
 		iRect m_rightPanelRemRect;
+		iRect m_hintButtonRect;
 		Sint32 m_leftPanel;
 		Sint32 m_rightPanel;
 		Sint32 m_consoleHeight = 140;
@@ -475,6 +476,7 @@ class Engine
 		Uint8 m_leftRemPanel = 0;
 		Uint8 m_rightAddPanel = 0;
 		Uint8 m_rightRemPanel = 0;
+		Uint8 m_hintButton = 0;
 		bool m_haveExtraLeftPanel = false;
 		bool m_haveExtraRightPanel = false;
 		bool m_canAddLeftPanel = false;
