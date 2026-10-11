@@ -10,24 +10,41 @@
 -- desync and the client can freeze, debug, or disconnect. The client and server
 -- must agree.
 --
--- This profile is for Mateus TFS 1.8 downgrade 8.60.
--- Do not change protocol/clientVersion/fileVersion to 870 for this server.
+-- Profiles:
+--   cip772        = tibia-gameserver-unified (CipSoft 7.72, login 7171 / game 7172).
+--                   Needs the 7.72 Tibia.dat / Tibia.spr in data/Assets.
+--   tfs860_custom = Mateus TFS 1.8 downgrade 8.60.
+-- Select a profile with selectedProfile or per server in serverProfiles.
 
 ClientFeatures = {
-    selectedProfile = "tfs860_custom",
+    selectedProfile = "cip772",
 
     default = {
-        protocol = 860,
+        protocol = 772,
         host = "127.0.0.1",
         port = 7171,
     },
 
     serverProfiles = {
-        ["127.0.0.1:7171"] = "tfs860_custom",
-        ["localhost:7171"] = "tfs860_custom",
+        ["127.0.0.1:7171"] = "cip772",
+        ["localhost:7171"] = "cip772",
     },
 
     profiles = {
+        cip772 = {
+            description = "CipSoft 7.72 (tibia-gameserver-unified)",
+            protocol = 772,
+            clientVersion = 772,
+            fileVersion = 772,
+
+            -- Use the client's built-in 7.72 features: numeric account number,
+            -- RSA + XTEA, no checksum, no 8.x extensions.
+            inheritDefaults = true,
+
+            features = {
+            }
+        },
+
         tfs860_custom = {
             description = "TFS 1.8 downgrade 8.60 custom protocol",
             protocol = 860,
