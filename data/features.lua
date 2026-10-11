@@ -54,6 +54,9 @@ ClientFeatures = {
                 -- Buttons next to the game window to open and close extra sidebars.
                 -- false hides them and only the standard sidebar is used.
                 GameExtraSidebars = false,
+
+                -- Blue mana bar under the health bar of your own character.
+                GameManaBar = true,
             }
         },
 

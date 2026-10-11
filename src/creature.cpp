@@ -575,6 +575,13 @@ void Creature::renderInformations(Sint32 posX, Sint32 posY, Sint32 drawX, Sint32
 
 	Sint32 POSX = posX + 9;
 	Sint32 POSY = posY + 18;
+	if(m_id == g_game.getPlayerID() && g_game.hasGameFeature(GAME_FEATURE_MANA_BAR))
+	{
+		//Mana bar under the health bar, the server only sends mana of the local player
+		renderer->fillRectangle(posX - 14, posY + 15, 28, 4, 0, 0, 0, 255);
+		renderer->fillRectangle(posX - 13, posY + 16, SDL_static_cast(Sint32, g_game.getPlayerManaPercent() * 0.26f), 2, 0, 0, 255, 255);
+		POSY += 3;
+	}
 	if(g_engine.hasShowMarks())
 	{
 		if(m_shield != SHIELD_NONE)
