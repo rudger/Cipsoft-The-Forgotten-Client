@@ -42,6 +42,9 @@ ClientFeatures = {
             inheritDefaults = true,
 
             features = {
+                -- Quests button in the inventory and Ctrl+U.
+                -- The server does not answer quest log requests yet.
+                GameQuestLog = true,
             }
         },
 
@@ -76,6 +79,7 @@ ClientFeatures = {
                 GameTileAddThingWithStackpos = true,
                 GameCreatureEmblems = true,
                 GameAttackSeq = true,
+                GameQuestLog = true,
 
                 -- Your TFS 1.8 custom 8.60 features.
                 -- Example: setting GamePlayerMounts = false hides Mount/Dismount

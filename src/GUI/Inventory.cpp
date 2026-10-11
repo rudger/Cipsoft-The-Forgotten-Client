@@ -317,15 +317,21 @@ void UTIL_createInventoryPanel(bool minimized)
 			newButton->setButtonEventCallback(&inventory_Events, INVENTORY_STOP_EVENTID);
 			newButton->startEvents();
 			pPanel->addChild(newButton);
-			newButton = new GUI_Button(iRect(124, 105, GUI_UI_BUTTON_43PX_GRAY_UP_W, GUI_UI_BUTTON_43PX_GRAY_UP_H), INVENTORY_QUESTS_TITLE, 0, INVENTORY_QUESTS_DESCRIPTION);
-			newButton->setButtonEventCallback(&inventory_Events, INVENTORY_QUESTS_EVENTID);
-			newButton->startEvents();
-			pPanel->addChild(newButton);
-			newButton = new GUI_Button(iRect(124, 127, GUI_UI_BUTTON_43PX_GRAY_UP_W, GUI_UI_BUTTON_43PX_GRAY_UP_H), INVENTORY_OPTIONS_TITLE, 0, INVENTORY_OPTIONS_DESCRIPTION);
+			Sint32 buttonY = 105;
+			if(g_game.hasGameFeature(GAME_FEATURE_QUEST_LOG))
+			{
+				newButton = new GUI_Button(iRect(124, buttonY, GUI_UI_BUTTON_43PX_GRAY_UP_W, GUI_UI_BUTTON_43PX_GRAY_UP_H), INVENTORY_QUESTS_TITLE, 0, INVENTORY_QUESTS_DESCRIPTION);
+				newButton->setButtonEventCallback(&inventory_Events, INVENTORY_QUESTS_EVENTID);
+				newButton->startEvents();
+				pPanel->addChild(newButton);
+				buttonY += 22;
+			}
+			newButton = new GUI_Button(iRect(124, buttonY, GUI_UI_BUTTON_43PX_GRAY_UP_W, GUI_UI_BUTTON_43PX_GRAY_UP_H), INVENTORY_OPTIONS_TITLE, 0, INVENTORY_OPTIONS_DESCRIPTION);
 			newButton->setButtonEventCallback(&inventory_Events, INVENTORY_OPTIONS_EVENTID);
 			newButton->startEvents();
 			pPanel->addChild(newButton);
-			newButton = new GUI_Button(iRect(124, 149, GUI_UI_BUTTON_43PX_GRAY_UP_W, GUI_UI_BUTTON_43PX_GRAY_UP_H), INVENTORY_HELP_TITLE, 0, INVENTORY_HELP_DESCRIPTION);
+			buttonY += 22;
+			newButton = new GUI_Button(iRect(124, buttonY, GUI_UI_BUTTON_43PX_GRAY_UP_W, GUI_UI_BUTTON_43PX_GRAY_UP_H), INVENTORY_HELP_TITLE, 0, INVENTORY_HELP_DESCRIPTION);
 			newButton->setButtonEventCallback(&inventory_Events, INVENTORY_HELP_EVENTID);
 			newButton->startEvents();
 			pPanel->addChild(newButton);
