@@ -693,4 +693,12 @@
       <Filter>Header Files\GUI</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Tibia.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+    <Image Include="Tibia.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
 </Project>

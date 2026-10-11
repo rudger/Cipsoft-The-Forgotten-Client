@@ -420,6 +420,12 @@
       <AdditionalDependencies>setupapi.lib;winmm.lib;imm32.lib;version.lib;ws2_32.lib;dxguid.lib;SDL2main.lib;SDL2.lib;zlib1.lib;wldap32.lib;crypt32.lib;libcurl.lib;kernel32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Tibia.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Tibia.ico" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
