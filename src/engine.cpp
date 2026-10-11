@@ -3547,54 +3547,64 @@ void Engine::redraw()
 		for(std::vector<GUI_Panel*>::iterator it = m_panels.begin(), end = m_panels.end(); it != end; ++it)
 			(*it)->render();
 
+		if(g_game.hasGameFeature(GAME_FEATURE_EXTRA_SIDEBARS))
 		{
-			m_leftPanelAddRect = iRect(m_gameBackgroundRect.x1, m_gameBackgroundRect.y1, GUI_UI_SIDEBAR_LEFT_ADD_UP_W, GUI_UI_SIDEBAR_LEFT_ADD_UP_H);
-			if(m_leftPanel != GUI_PANEL_RANDOM)
-				m_leftPanelAddRect.x1 = m_gameBackgroundRect.x1 - GUI_UI_SIDEBAR_LEFT_ADD_UP_W + 2;
-
-			if(m_canAddLeftPanel)
 			{
-				if(m_leftAddPanel == 1)
-					m_surface->drawPicture(GUI_UI_IMAGE, GUI_UI_SIDEBAR_LEFT_ADD_DOWN_X, GUI_UI_SIDEBAR_LEFT_ADD_DOWN_Y, m_leftPanelAddRect.x1, m_leftPanelAddRect.y1, m_leftPanelAddRect.x2, m_leftPanelAddRect.y2);
-				else
-					m_surface->drawPicture(GUI_UI_IMAGE, GUI_UI_SIDEBAR_LEFT_ADD_UP_X, GUI_UI_SIDEBAR_LEFT_ADD_UP_Y, m_leftPanelAddRect.x1, m_leftPanelAddRect.y1, m_leftPanelAddRect.x2, m_leftPanelAddRect.y2);
-			}
-			else
-				m_surface->drawPicture(GUI_UI_IMAGE, GUI_UI_SIDEBAR_LEFT_ADD_DISABLED_X, GUI_UI_SIDEBAR_LEFT_ADD_DISABLED_Y, m_leftPanelAddRect.x1, m_leftPanelAddRect.y1, m_leftPanelAddRect.x2, m_leftPanelAddRect.y2);
+				m_leftPanelAddRect = iRect(m_gameBackgroundRect.x1, m_gameBackgroundRect.y1, GUI_UI_SIDEBAR_LEFT_ADD_UP_W, GUI_UI_SIDEBAR_LEFT_ADD_UP_H);
+				if(m_leftPanel != GUI_PANEL_RANDOM)
+					m_leftPanelAddRect.x1 = m_gameBackgroundRect.x1 - GUI_UI_SIDEBAR_LEFT_ADD_UP_W + 2;
 
-			m_leftPanelRemRect = iRect(m_leftPanelAddRect.x1, m_leftPanelAddRect.y1 + m_leftPanelAddRect.y2, GUI_UI_SIDEBAR_LEFT_REMOVE_UP_W, GUI_UI_SIDEBAR_LEFT_REMOVE_UP_H);
-			if(m_haveExtraLeftPanel)
-			{
-				if(m_leftRemPanel == 1)
-					m_surface->drawPicture(GUI_UI_IMAGE, GUI_UI_SIDEBAR_LEFT_REMOVE_DOWN_X, GUI_UI_SIDEBAR_LEFT_REMOVE_DOWN_Y, m_leftPanelRemRect.x1, m_leftPanelRemRect.y1, m_leftPanelRemRect.x2, m_leftPanelRemRect.y2);
+				if(m_canAddLeftPanel)
+				{
+					if(m_leftAddPanel == 1)
+						m_surface->drawPicture(GUI_UI_IMAGE, GUI_UI_SIDEBAR_LEFT_ADD_DOWN_X, GUI_UI_SIDEBAR_LEFT_ADD_DOWN_Y, m_leftPanelAddRect.x1, m_leftPanelAddRect.y1, m_leftPanelAddRect.x2, m_leftPanelAddRect.y2);
+					else
+						m_surface->drawPicture(GUI_UI_IMAGE, GUI_UI_SIDEBAR_LEFT_ADD_UP_X, GUI_UI_SIDEBAR_LEFT_ADD_UP_Y, m_leftPanelAddRect.x1, m_leftPanelAddRect.y1, m_leftPanelAddRect.x2, m_leftPanelAddRect.y2);
+				}
 				else
-					m_surface->drawPicture(GUI_UI_IMAGE, GUI_UI_SIDEBAR_LEFT_REMOVE_UP_X, GUI_UI_SIDEBAR_LEFT_REMOVE_UP_Y, m_leftPanelRemRect.x1, m_leftPanelRemRect.y1, m_leftPanelRemRect.x2, m_leftPanelRemRect.y2);
+					m_surface->drawPicture(GUI_UI_IMAGE, GUI_UI_SIDEBAR_LEFT_ADD_DISABLED_X, GUI_UI_SIDEBAR_LEFT_ADD_DISABLED_Y, m_leftPanelAddRect.x1, m_leftPanelAddRect.y1, m_leftPanelAddRect.x2, m_leftPanelAddRect.y2);
+
+				m_leftPanelRemRect = iRect(m_leftPanelAddRect.x1, m_leftPanelAddRect.y1 + m_leftPanelAddRect.y2, GUI_UI_SIDEBAR_LEFT_REMOVE_UP_W, GUI_UI_SIDEBAR_LEFT_REMOVE_UP_H);
+				if(m_haveExtraLeftPanel)
+				{
+					if(m_leftRemPanel == 1)
+						m_surface->drawPicture(GUI_UI_IMAGE, GUI_UI_SIDEBAR_LEFT_REMOVE_DOWN_X, GUI_UI_SIDEBAR_LEFT_REMOVE_DOWN_Y, m_leftPanelRemRect.x1, m_leftPanelRemRect.y1, m_leftPanelRemRect.x2, m_leftPanelRemRect.y2);
+					else
+						m_surface->drawPicture(GUI_UI_IMAGE, GUI_UI_SIDEBAR_LEFT_REMOVE_UP_X, GUI_UI_SIDEBAR_LEFT_REMOVE_UP_Y, m_leftPanelRemRect.x1, m_leftPanelRemRect.y1, m_leftPanelRemRect.x2, m_leftPanelRemRect.y2);
+				}
+				else
+					m_surface->drawPicture(GUI_UI_IMAGE, GUI_UI_SIDEBAR_LEFT_REMOVE_DISABLED_X, GUI_UI_SIDEBAR_LEFT_REMOVE_DISABLED_Y, m_leftPanelRemRect.x1, m_leftPanelRemRect.y1, m_leftPanelRemRect.x2, m_leftPanelRemRect.y2);
 			}
-			else
-				m_surface->drawPicture(GUI_UI_IMAGE, GUI_UI_SIDEBAR_LEFT_REMOVE_DISABLED_X, GUI_UI_SIDEBAR_LEFT_REMOVE_DISABLED_Y, m_leftPanelRemRect.x1, m_leftPanelRemRect.y1, m_leftPanelRemRect.x2, m_leftPanelRemRect.y2);
+			{
+				m_rightPanelAddRect = iRect(m_gameBackgroundRect.x1 + m_gameBackgroundRect.x2 - GUI_UI_SIDEBAR_RIGHT_ADD_UP_W, m_gameBackgroundRect.y1, GUI_UI_SIDEBAR_RIGHT_ADD_UP_W, GUI_UI_SIDEBAR_RIGHT_ADD_UP_H);
+				if(m_canAddRightPanel)
+				{
+					if(m_rightAddPanel == 1)
+						m_surface->drawPicture(GUI_UI_IMAGE, GUI_UI_SIDEBAR_RIGHT_ADD_DOWN_X, GUI_UI_SIDEBAR_RIGHT_ADD_DOWN_Y, m_rightPanelAddRect.x1, m_rightPanelAddRect.y1, m_rightPanelAddRect.x2, m_rightPanelAddRect.y2);
+					else
+						m_surface->drawPicture(GUI_UI_IMAGE, GUI_UI_SIDEBAR_RIGHT_ADD_UP_X, GUI_UI_SIDEBAR_RIGHT_ADD_UP_Y, m_rightPanelAddRect.x1, m_rightPanelAddRect.y1, m_rightPanelAddRect.x2, m_rightPanelAddRect.y2);
+				}
+				else
+					m_surface->drawPicture(GUI_UI_IMAGE, GUI_UI_SIDEBAR_RIGHT_ADD_DISABLED_X, GUI_UI_SIDEBAR_RIGHT_ADD_DISABLED_Y, m_rightPanelAddRect.x1, m_rightPanelAddRect.y1, m_rightPanelAddRect.x2, m_rightPanelAddRect.y2);
+
+				m_rightPanelRemRect = iRect(m_rightPanelAddRect.x1, m_rightPanelAddRect.y1 + m_rightPanelAddRect.y2, GUI_UI_SIDEBAR_RIGHT_REMOVE_UP_W, GUI_UI_SIDEBAR_RIGHT_REMOVE_UP_H);
+				if(m_haveExtraRightPanel)
+				{
+					if(m_rightRemPanel == 1)
+						m_surface->drawPicture(GUI_UI_IMAGE, GUI_UI_SIDEBAR_RIGHT_REMOVE_DOWN_X, GUI_UI_SIDEBAR_RIGHT_REMOVE_DOWN_Y, m_rightPanelRemRect.x1, m_rightPanelRemRect.y1, m_rightPanelRemRect.x2, m_rightPanelRemRect.y2);
+					else
+						m_surface->drawPicture(GUI_UI_IMAGE, GUI_UI_SIDEBAR_RIGHT_REMOVE_UP_X, GUI_UI_SIDEBAR_RIGHT_REMOVE_UP_Y, m_rightPanelRemRect.x1, m_rightPanelRemRect.y1, m_rightPanelRemRect.x2, m_rightPanelRemRect.y2);
+				}
+				else
+					m_surface->drawPicture(GUI_UI_IMAGE, GUI_UI_SIDEBAR_RIGHT_REMOVE_DISABLED_X, GUI_UI_SIDEBAR_RIGHT_REMOVE_DISABLED_Y, m_rightPanelRemRect.x1, m_rightPanelRemRect.y1, m_rightPanelRemRect.x2, m_rightPanelRemRect.y2);
+			}
 		}
+		else
 		{
-			m_rightPanelAddRect = iRect(m_gameBackgroundRect.x1 + m_gameBackgroundRect.x2 - GUI_UI_SIDEBAR_RIGHT_ADD_UP_W, m_gameBackgroundRect.y1, GUI_UI_SIDEBAR_RIGHT_ADD_UP_W, GUI_UI_SIDEBAR_RIGHT_ADD_UP_H);
-			if(m_canAddRightPanel)
-			{
-				if(m_rightAddPanel == 1)
-					m_surface->drawPicture(GUI_UI_IMAGE, GUI_UI_SIDEBAR_RIGHT_ADD_DOWN_X, GUI_UI_SIDEBAR_RIGHT_ADD_DOWN_Y, m_rightPanelAddRect.x1, m_rightPanelAddRect.y1, m_rightPanelAddRect.x2, m_rightPanelAddRect.y2);
-				else
-					m_surface->drawPicture(GUI_UI_IMAGE, GUI_UI_SIDEBAR_RIGHT_ADD_UP_X, GUI_UI_SIDEBAR_RIGHT_ADD_UP_Y, m_rightPanelAddRect.x1, m_rightPanelAddRect.y1, m_rightPanelAddRect.x2, m_rightPanelAddRect.y2);
-			}
-			else
-				m_surface->drawPicture(GUI_UI_IMAGE, GUI_UI_SIDEBAR_RIGHT_ADD_DISABLED_X, GUI_UI_SIDEBAR_RIGHT_ADD_DISABLED_Y, m_rightPanelAddRect.x1, m_rightPanelAddRect.y1, m_rightPanelAddRect.x2, m_rightPanelAddRect.y2);
-
-			m_rightPanelRemRect = iRect(m_rightPanelAddRect.x1, m_rightPanelAddRect.y1 + m_rightPanelAddRect.y2, GUI_UI_SIDEBAR_RIGHT_REMOVE_UP_W, GUI_UI_SIDEBAR_RIGHT_REMOVE_UP_H);
-			if(m_haveExtraRightPanel)
-			{
-				if(m_rightRemPanel == 1)
-					m_surface->drawPicture(GUI_UI_IMAGE, GUI_UI_SIDEBAR_RIGHT_REMOVE_DOWN_X, GUI_UI_SIDEBAR_RIGHT_REMOVE_DOWN_Y, m_rightPanelRemRect.x1, m_rightPanelRemRect.y1, m_rightPanelRemRect.x2, m_rightPanelRemRect.y2);
-				else
-					m_surface->drawPicture(GUI_UI_IMAGE, GUI_UI_SIDEBAR_RIGHT_REMOVE_UP_X, GUI_UI_SIDEBAR_RIGHT_REMOVE_UP_Y, m_rightPanelRemRect.x1, m_rightPanelRemRect.y1, m_rightPanelRemRect.x2, m_rightPanelRemRect.y2);
-			}
-			else
-				m_surface->drawPicture(GUI_UI_IMAGE, GUI_UI_SIDEBAR_RIGHT_REMOVE_DISABLED_X, GUI_UI_SIDEBAR_RIGHT_REMOVE_DISABLED_Y, m_rightPanelRemRect.x1, m_rightPanelRemRect.y1, m_rightPanelRemRect.x2, m_rightPanelRemRect.y2);
+			m_leftPanelAddRect = iRect(0, 0, 0, 0);
+			m_leftPanelRemRect = iRect(0, 0, 0, 0);
+			m_rightPanelAddRect = iRect(0, 0, 0, 0);
+			m_rightPanelRemRect = iRect(0, 0, 0, 0);
 		}
 
 		if(g_game.hasGameFeature(GAME_FEATURE_HINT_BUTTON))
@@ -5016,6 +5026,11 @@ void Engine::processGameStart()
 	if(!haveButtons) UTIL_createButtonsPanel();
 
 	m_panels.push_back(new GUI_Panel(iRect(0, 0, GAME_PANEL_FIXED_WIDTH, m_windowH - calculateMainHeight()), GUI_PANEL_RIGHT));
+	if(!g_game.hasGameFeature(GAME_FEATURE_EXTRA_SIDEBARS))
+	{
+		m_rightPanel = GUI_PANEL_MAIN;
+		m_leftPanel = GUI_PANEL_RANDOM;
+	}
 	if(m_rightPanel != GUI_PANEL_MAIN)
 	{
 		Sint32 panels = m_rightPanel - GUI_PANEL_EXTRA_RIGHT_START;

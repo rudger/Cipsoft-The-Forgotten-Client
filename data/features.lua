@@ -50,6 +50,10 @@ ClientFeatures = {
                 -- window, as in the 7.72 client. Needs the 7.72 Tibia.pic.
                 -- Shown only, it does nothing yet.
                 GameHintButton = false,
+
+                -- Buttons next to the game window to open and close extra sidebars.
+                -- false hides them and only the standard sidebar is used.
+                GameExtraSidebars = false,
             }
         },
 

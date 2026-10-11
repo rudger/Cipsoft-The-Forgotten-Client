@@ -100,6 +100,7 @@ void Game::applyDefaultFeaturesForVersion(Uint32 clientVersion, Uint32 fileVersi
 {
 	m_gameFeatures.reset();
 	enableGameFeature(GAME_FEATURE_UPDATE_TILE);
+	enableGameFeature(GAME_FEATURE_EXTRA_SIDEBARS);
 	if(clientVersion >= 770)
 	{
 		enableGameFeature(GAME_FEATURE_XTEA);

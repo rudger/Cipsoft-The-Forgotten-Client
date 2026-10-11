@@ -154,6 +154,7 @@ namespace
 		{"GameBlessDialog", GAME_FEATURE_BLESS_DIALOG},
 		{"GameQuestLog", GAME_FEATURE_QUEST_LOG},
 		{"GameHintButton", GAME_FEATURE_HINT_BUTTON},
+		{"GameExtraSidebars", GAME_FEATURE_EXTRA_SIDEBARS},
 		{"GameQuestTracker", GAME_FEATURE_QUEST_TRACKER},
 		{"GameTime", GAME_FEATURE_GAMETIME},
 		{"GameCompedium", GAME_FEATURE_COMPEDIUM},
