@@ -3599,8 +3599,7 @@ void Engine::redraw()
 
 		if(g_game.hasGameFeature(GAME_FEATURE_HINT_BUTTON))
 		{
-			//Keep clear of the sidebar buttons when the game window reaches the right edge
-			m_hintButtonRect = iRect(m_gameWindowRect.x1 + m_gameWindowRect.x2 - GUI_UI_ICON_HINT_UP_W - GUI_UI_SIDEBAR_RIGHT_ADD_UP_W - 6, m_gameWindowRect.y1 + 6, GUI_UI_ICON_HINT_UP_W, GUI_UI_ICON_HINT_UP_H);
+			m_hintButtonRect = iRect(m_gameWindowRect.x1 + m_gameWindowRect.x2 - GUI_UI_ICON_HINT_UP_W - 6, m_gameWindowRect.y1 + 6, GUI_UI_ICON_HINT_UP_W, GUI_UI_ICON_HINT_UP_H);
 			if(m_hintButton == 1)
 				m_surface->drawPicture(GUI_UI_IMAGE, GUI_UI_ICON_HINT_DOWN_X, GUI_UI_ICON_HINT_DOWN_Y, m_hintButtonRect.x1, m_hintButtonRect.y1, m_hintButtonRect.x2, m_hintButtonRect.y2);
 			else
