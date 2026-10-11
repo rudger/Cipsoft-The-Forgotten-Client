@@ -2115,6 +2115,19 @@ void Engine::onMouseMove(Sint32 x, Sint32 y)
 			if(inside)
 				showDescription(x, y, (m_haveExtraRightPanel ? "Close this sidebar" : "Last sidebar cannot be closed"));
 		}
+		if(g_game.hasGameFeature(GAME_FEATURE_HINT_BUTTON))
+		{
+			bool inside = m_hintButtonRect.isPointInside(x, y);
+			if(m_hintButton > 0)
+			{
+				if(m_hintButton == 1 && !inside)
+					m_hintButton = 2;
+				else if(m_hintButton == 2 && inside)
+					m_hintButton = 1;
+			}
+			if(inside)
+				showDescription(x, y, "Receive hint");
+		}
 
 		g_chat.onMouseMove(m_chatWindowRect, x, y);
 		if(m_actionData == CLIENT_ACTION_MOVEITEM || m_actionData == CLIENT_ACTION_USEWITH || m_actionData == CLIENT_ACTION_TRADE || m_actionData == CLIENT_ACTION_SEARCHHOTKEY)
@@ -2186,6 +2199,11 @@ void Engine::onLMouseDown(Sint32 x, Sint32 y)
 		if(gPanel)
 		{
 			gPanel->onLMouseDown(x, y);
+			return;
+		}
+		if(g_game.hasGameFeature(GAME_FEATURE_HINT_BUTTON) && m_hintButtonRect.isPointInside(x, y))
+		{
+			m_hintButton = 1;
 			return;
 		}
 		if(m_gameWindowRect.isPointInside(x, y))
@@ -2669,6 +2687,8 @@ void Engine::onLMouseUp(Sint32 x, Sint32 y)
 			m_rightAddPanel = 0;
 			m_rightRemPanel = 0;
 		}
+		//The hint button has no action yet, the server does not send hints
+		m_hintButton = 0;
 	}
 	else
 	{
@@ -3575,6 +3595,15 @@ void Engine::redraw()
 			}
 			else
 				m_surface->drawPicture(GUI_UI_IMAGE, GUI_UI_SIDEBAR_RIGHT_REMOVE_DISABLED_X, GUI_UI_SIDEBAR_RIGHT_REMOVE_DISABLED_Y, m_rightPanelRemRect.x1, m_rightPanelRemRect.y1, m_rightPanelRemRect.x2, m_rightPanelRemRect.y2);
+		}
+
+		if(g_game.hasGameFeature(GAME_FEATURE_HINT_BUTTON))
+		{
+			m_hintButtonRect = iRect(m_gameWindowRect.x1 + m_gameWindowRect.x2 - GUI_UI_ICON_HINT_UP_W - 6, m_gameWindowRect.y1 + 6, GUI_UI_ICON_HINT_UP_W, GUI_UI_ICON_HINT_UP_H);
+			if(m_hintButton == 1)
+				m_surface->drawPicture(GUI_UI_IMAGE, GUI_UI_ICON_HINT_DOWN_X, GUI_UI_ICON_HINT_DOWN_Y, m_hintButtonRect.x1, m_hintButtonRect.y1, m_hintButtonRect.x2, m_hintButtonRect.y2);
+			else
+				m_surface->drawPicture(GUI_UI_IMAGE, GUI_UI_ICON_HINT_UP_X, GUI_UI_ICON_HINT_UP_Y, m_hintButtonRect.x1, m_hintButtonRect.y1, m_hintButtonRect.x2, m_hintButtonRect.y2);
 		}
 
 		if(m_topPanel)
