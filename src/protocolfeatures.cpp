@@ -153,7 +153,6 @@ namespace
 		{"GameProtocolSequence", GAME_FEATURE_PROTOCOLSEQUENCE},
 		{"GameBlessDialog", GAME_FEATURE_BLESS_DIALOG},
 		{"GameQuestLog", GAME_FEATURE_QUEST_LOG},
-		{"GameHintButton", GAME_FEATURE_HINT_BUTTON},
 		{"GameQuestTracker", GAME_FEATURE_QUEST_TRACKER},
 		{"GameTime", GAME_FEATURE_GAMETIME},
 		{"GameCompedium", GAME_FEATURE_COMPEDIUM},
