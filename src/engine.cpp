@@ -325,6 +325,9 @@ void Engine::loadCFG()
 		data = cfg.fetchKey("ShowManaBar");
 		if(!data.empty())
 			m_showManaBar = (data == "yes" ? true : false);
+		data = cfg.fetchKey("TabAttack");
+		if(!data.empty())
+			m_tabAttack = (data == "yes" ? true : false);
 		data = cfg.fetchKey("CreatureInfo");
 		m_showNames = (SDL_static_cast(Uint32, SDL_strtoul(data.c_str(), NULL, 10)) > 0 ? true : false);
 		data = cfg.fetchKey("CreatureMarks");
@@ -666,6 +669,8 @@ void Engine::saveCFG()
 		cfg.insertKey("SmartWalking", std::string(g_buffer, SDL_static_cast(size_t, len)));
 		len = SDL_snprintf(g_buffer, sizeof(g_buffer), "%s", (m_showManaBar ? "yes" : "no"));
 		cfg.insertKey("ShowManaBar", std::string(g_buffer, SDL_static_cast(size_t, len)));
+		len = SDL_snprintf(g_buffer, sizeof(g_buffer), "%s", (m_tabAttack ? "yes" : "no"));
+		cfg.insertKey("TabAttack", std::string(g_buffer, SDL_static_cast(size_t, len)));
 		len = SDL_snprintf(g_buffer, sizeof(g_buffer), "%u", (m_showNames ? 2 : 0));
 		cfg.insertKey("CreatureInfo", std::string(g_buffer, SDL_static_cast(size_t, len)));
 		len = SDL_snprintf(g_buffer, sizeof(g_buffer), "%s", (m_showMarks ? "yes" : "no"));
@@ -1563,6 +1568,14 @@ void Engine::onKeyDown(SDL_Event& event)
 					return;
 				}
 			}
+		}
+
+		//TAB attacks the nearest monster instead of switching to the next chat channel
+		if(m_tabAttack && modsNoLocks == KMOD_NONE && event.key.keysym.sym == SDLK_TAB)
+		{
+			if(event.key.repeat == 0)
+				attackNearestMonster();
+			return;
 		}
 
 		if(event.key.keysym.mod == KMOD_NONE)
@@ -3283,6 +3296,56 @@ void Engine::beginHotkeyItemSelection(SDL_Keycode key, Uint16 mods)
 	m_pendingHotkeyItemKey = key;
 	m_pendingHotkeyItemModifiers = mods;
 	setAction(CLIENT_ACTION_SEARCHHOTKEY);
+}
+
+void Engine::attackNearestMonster()
+{
+	Creature* localCreature = g_map.getLocalCreature();
+	if(!localCreature)
+		return;
+
+	//Visible monsters on our floor in the game window, nearest first
+	const Position& ownPosition = localCreature->getCurrentPosition();
+	std::vector<std::pair<Sint32, Creature*>> monsters;
+	knownCreatures& creatures = g_map.getKnownCreatures();
+	for(knownCreatures::iterator it = creatures.begin(), end = creatures.end(); it != end; ++it)
+	{
+		Creature* creature = it->second;
+		if(!creature || creature->getType() != CREATURETYPE_MONSTER || !creature->isVisible() || creature->getHealth() < 1)
+			continue;
+
+		const Position& position = creature->getCurrentPosition();
+		if(position.z != ownPosition.z)
+			continue;
+
+		Sint32 dx = SDL_abs(SDL_static_cast(Sint32, position.x) - SDL_static_cast(Sint32, ownPosition.x));
+		Sint32 dy = SDL_abs(SDL_static_cast(Sint32, position.y) - SDL_static_cast(Sint32, ownPosition.y));
+		if(dx > (GAME_MAP_WIDTH / 2) || dy > (GAME_MAP_HEIGHT / 2))
+			continue;
+
+		monsters.emplace_back(dx * dx + dy * dy, creature);
+	}
+	if(monsters.empty())
+		return;
+
+	std::sort(monsters.begin(), monsters.end(), [](const std::pair<Sint32, Creature*>& a, const std::pair<Sint32, Creature*>& b) -> bool
+	{
+		if(a.first != b.first)
+			return a.first < b.first;
+		return a.second->getId() < b.second->getId();
+	});
+
+	//Pressing TAB again attacks the next nearest monster
+	size_t next = 0;
+	for(size_t i = 0, end = monsters.size(); i < end; ++i)
+	{
+		if(monsters[i].second->getId() == g_game.getAttackID())
+		{
+			next = (i + 1) % end;
+			break;
+		}
+	}
+	g_game.sendAttack(monsters[next].second);
 }
 
 void Engine::resetToDefaultHotkeys(bool wasd)
