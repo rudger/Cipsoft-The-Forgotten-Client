@@ -703,7 +703,7 @@ void UTIL_recreateSkillsWindow(GUI_SkillsContainer* container)
 	newDescription->setName(true, std::move(getSkillData(SKILLS_CAPACITY_EVENTID)));
 	container->addChild(newDescription, false);
 	PosY += 14;
-	if(g_game.hasGameFeature(GAME_FEATURE_BASE_SKILLS))
+	if(g_game.hasGameFeature(GAME_FEATURE_BASE_SKILLS) || g_game.hasGameFeature(GAME_FEATURE_SKILLS_SPEED))
 	{
 		newDescription = new GUI_SkillDescription(iRect(10, PosY, 135, 12), SKILLS_SPEED_EVENTID);
 		newDescription->setName(false, SKILLS_SPEED_TITLE);

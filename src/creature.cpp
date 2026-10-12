@@ -918,6 +918,10 @@ void Creature::setOutfit(Uint16 lookType, Uint16 lookTypeEx, Uint8 lookHead, Uin
 void Creature::setSpeed(Uint16 speed)
 {
 	m_speed = speed;
+	//Servers without base skills don't send the speed in the player stats, use our own creature speed
+	if(m_id == g_game.getPlayerID() && !g_game.hasGameFeature(GAME_FEATURE_BASE_SKILLS))
+		g_game.setPlayerBaseSpeed(speed);
+
 	if(g_game.hasGameFeature(GAME_FEATURE_NEWSPEED_LAW))
 	{
 		Sint32 stepSpeed = SDL_static_cast(Sint32, m_speed);

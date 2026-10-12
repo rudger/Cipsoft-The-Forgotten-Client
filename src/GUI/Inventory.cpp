@@ -512,7 +512,7 @@ void GUI_Icons::onMouseMove(Sint32 x, Sint32 y, bool isInsideParent)
 	Creature* localPlayer = g_map.getLocalCreature();
 	if(localPlayer)
 	{
-		if(g_game.hasGameFeature(GAME_FEATURE_REGENERATION_TIME) && g_game.getPlayerRegeneration() == 0)
+		if(g_game.hasGameFeature(GAME_FEATURE_REGENERATION_TIME) && g_game.getPlayerRegeneration() == 0 && g_clientVersion >= 800)
 			icons.push_back({0,0,0,0, "You are hungry"});
 
 		Uint8 playerSkull = localPlayer->getSkull();
@@ -580,7 +580,7 @@ void GUI_Icons::render()
 	Creature* localPlayer = g_map.getLocalCreature();
 	if(localPlayer)
 	{
-		if(g_game.hasGameFeature(GAME_FEATURE_REGENERATION_TIME) && g_game.getPlayerRegeneration() == 0)
+		if(g_game.hasGameFeature(GAME_FEATURE_REGENERATION_TIME) && g_game.getPlayerRegeneration() == 0 && g_clientVersion >= 800)
 			icons.push_back({GUI_UI_STATUS_HUNGRY_X, GUI_UI_STATUS_HUNGRY_Y, GUI_UI_STATUS_HUNGRY_W, GUI_UI_STATUS_HUNGRY_H});
 
 		Uint8 playerSkull = localPlayer->getSkull();

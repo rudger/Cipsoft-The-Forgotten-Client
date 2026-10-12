@@ -57,6 +57,14 @@ ClientFeatures = {
 
                 -- Blue mana bar under the health bar of your own character.
                 GameManaBar = true,
+
+                -- Speed in the skills window, under Capacity.
+                GameSkillsSpeed = true,
+
+                -- Food time in the skills window, under Speed (0:05 = 5 minutes).
+                -- The server must send it: set send_food_time = true in the
+                -- server config.cfg, otherwise the client disconnects.
+                GameRegenerationTime = true,
             }
         },
 

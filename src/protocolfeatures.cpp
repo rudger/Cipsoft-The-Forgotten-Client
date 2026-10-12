@@ -156,6 +156,7 @@ namespace
 		{"GameHintButton", GAME_FEATURE_HINT_BUTTON},
 		{"GameExtraSidebars", GAME_FEATURE_EXTRA_SIDEBARS},
 		{"GameManaBar", GAME_FEATURE_MANA_BAR},
+		{"GameSkillsSpeed", GAME_FEATURE_SKILLS_SPEED},
 		{"GameQuestTracker", GAME_FEATURE_QUEST_TRACKER},
 		{"GameTime", GAME_FEATURE_GAMETIME},
 		{"GameCompedium", GAME_FEATURE_COMPEDIUM},
