@@ -56,6 +56,7 @@ ClientFeatures = {
                 GameExtraSidebars = false,
 
                 -- Blue mana bar under the health bar of your own character.
+                -- Adds "Show player mana bar" to General Options to turn it on/off.
                 GameManaBar = true,
 
                 -- Speed in the skills window, under Capacity.

@@ -312,6 +312,8 @@ class Engine
 		SDL_INLINE bool isChatInputEnabled() {return m_chatInputEnabled;}
 		SDL_INLINE bool isChatInputTemporary() {return m_chatInputTemporary;}
 		SDL_INLINE bool hasSmartWalking() {return m_smartWalking;}
+		SDL_INLINE void setShowManaBar(bool showManaBar) {m_showManaBar = showManaBar;}
+		SDL_INLINE bool hasShowManaBar() {return m_showManaBar;}
 		SDL_INLINE bool hasShowNames() {return m_showNames;}
 		SDL_INLINE bool hasShowMarks() {return m_showMarks;}
 		SDL_INLINE bool hasShowPvPFrames() {return m_showPvPFrames;}
@@ -498,6 +500,7 @@ class Engine
 		bool m_autoChaseOff = true;
 		bool m_wasdWalking = false;
 		bool m_smartWalking = false;
+		bool m_showManaBar = true;
 		bool m_chatInputEnabled = true;
 		bool m_chatInputTemporary = false;
 		bool m_showNames = true;

@@ -25,6 +25,7 @@
 #include "../GUI_Elements/GUI_Button.h"
 #include "../GUI_Elements/GUI_Separator.h"
 #include "../GUI_Elements/GUI_CheckBox.h"
+#include "../game.h"
 
 #define GENERAL_OPTIONS_TITLE "General Options"
 #define GENERAL_OPTIONS_WIDTH 246
@@ -57,6 +58,12 @@
 #define GENERAL_OPTIONS_SMART_WALKING_W 210
 #define GENERAL_OPTIONS_SMART_WALKING_H 22
 #define GENERAL_OPTIONS_SMART_WALKING_EVENTID 1015
+#define GENERAL_OPTIONS_MANA_BAR_TEXT "Show player mana bar"
+#define GENERAL_OPTIONS_MANA_BAR_X 18
+#define GENERAL_OPTIONS_MANA_BAR_Y 164
+#define GENERAL_OPTIONS_MANA_BAR_W 210
+#define GENERAL_OPTIONS_MANA_BAR_H 22
+#define GENERAL_OPTIONS_MANA_BAR_EVENTID 1016
 #define GENERAL_OPTIONS_SHOW_NAMES_TEXT "Show Names of Creatures"
 #define GENERAL_OPTIONS_SHOW_NAMES_X 18
 #define GENERAL_OPTIONS_SHOW_NAMES_Y 164
@@ -113,6 +120,7 @@
 #define GENERAL_OPTIONS_ASK_BUY_PRODUCTS_EVENTID 1013
 
 extern Engine g_engine;
+extern Game g_game;
 
 void general_options_Events(Uint32 event, Sint32)
 {
@@ -143,6 +151,9 @@ void general_options_Events(Uint32 event, Sint32)
 				pCheckBox = SDL_static_cast(GUI_CheckBox*, pWindow->getChild(GENERAL_OPTIONS_SMART_WALKING_EVENTID));
 				if(pCheckBox)
 					g_engine.setSmartWalking(pCheckBox->isChecked());
+				pCheckBox = SDL_static_cast(GUI_CheckBox*, pWindow->getChild(GENERAL_OPTIONS_MANA_BAR_EVENTID));
+				if(pCheckBox)
+					g_engine.setShowManaBar(pCheckBox->isChecked());
 				pCheckBox = SDL_static_cast(GUI_CheckBox*, pWindow->getChild(GENERAL_OPTIONS_SHOW_NAMES_EVENTID));
 				if(pCheckBox)
 					g_engine.setShowNames(pCheckBox->isChecked());
@@ -176,7 +187,11 @@ void UTIL_generalOptions()
 	if(pWindow)
 		g_engine.removeWindow(pWindow);
 
-	GUI_Window* newWindow = new GUI_Window(iRect(0, 0, GENERAL_OPTIONS_WIDTH, GENERAL_OPTIONS_HEIGHT), GENERAL_OPTIONS_TITLE, GUI_WINDOW_GENERALOPTIONS);
+	//The mana bar option is only shown when the mana bar is enabled in features.lua
+	const bool manaBarOption = g_game.hasGameFeature(GAME_FEATURE_MANA_BAR);
+	const Sint32 offsetY = (manaBarOption ? 33 : 0);
+	const Sint32 windowHeight = GENERAL_OPTIONS_HEIGHT + offsetY;
+	GUI_Window* newWindow = new GUI_Window(iRect(0, 0, GENERAL_OPTIONS_WIDTH, windowHeight), GENERAL_OPTIONS_TITLE, GUI_WINDOW_GENERALOPTIONS);
 	GUI_CheckBox* newCheckBox = new GUI_CheckBox(iRect(GENERAL_OPTIONS_CLASSIC_CONTROL_X, GENERAL_OPTIONS_CLASSIC_CONTROL_Y, GENERAL_OPTIONS_CLASSIC_CONTROL_W, GENERAL_OPTIONS_CLASSIC_CONTROL_H), GENERAL_OPTIONS_CLASSIC_CONTROL_TEXT, g_engine.hasClassicControl(), GENERAL_OPTIONS_CLASSIC_CONTROL_EVENTID);
 	newCheckBox->setBoxEventCallback(&general_options_Events, GENERAL_OPTIONS_CLASSIC_CONTROL_EVENTID);
 	newCheckBox->startEvents();
@@ -193,55 +208,62 @@ void UTIL_generalOptions()
 	newCheckBox->setBoxEventCallback(&general_options_Events, GENERAL_OPTIONS_SMART_WALKING_EVENTID);
 	newCheckBox->startEvents();
 	newWindow->addChild(newCheckBox);
-	newCheckBox = new GUI_CheckBox(iRect(GENERAL_OPTIONS_SHOW_NAMES_X, GENERAL_OPTIONS_SHOW_NAMES_Y, GENERAL_OPTIONS_SHOW_NAMES_W, GENERAL_OPTIONS_SHOW_NAMES_H), GENERAL_OPTIONS_SHOW_NAMES_TEXT, g_engine.hasShowNames(), GENERAL_OPTIONS_SHOW_NAMES_EVENTID);
+	if(manaBarOption)
+	{
+		newCheckBox = new GUI_CheckBox(iRect(GENERAL_OPTIONS_MANA_BAR_X, GENERAL_OPTIONS_MANA_BAR_Y, GENERAL_OPTIONS_MANA_BAR_W, GENERAL_OPTIONS_MANA_BAR_H), GENERAL_OPTIONS_MANA_BAR_TEXT, g_engine.hasShowManaBar(), GENERAL_OPTIONS_MANA_BAR_EVENTID);
+		newCheckBox->setBoxEventCallback(&general_options_Events, GENERAL_OPTIONS_MANA_BAR_EVENTID);
+		newCheckBox->startEvents();
+		newWindow->addChild(newCheckBox);
+	}
+	newCheckBox = new GUI_CheckBox(iRect(GENERAL_OPTIONS_SHOW_NAMES_X, GENERAL_OPTIONS_SHOW_NAMES_Y + offsetY, GENERAL_OPTIONS_SHOW_NAMES_W, GENERAL_OPTIONS_SHOW_NAMES_H), GENERAL_OPTIONS_SHOW_NAMES_TEXT, g_engine.hasShowNames(), GENERAL_OPTIONS_SHOW_NAMES_EVENTID);
 	newCheckBox->setBoxEventCallback(&general_options_Events, GENERAL_OPTIONS_SHOW_NAMES_EVENTID);
 	newCheckBox->startEvents();
 	newWindow->addChild(newCheckBox);
-	newCheckBox = new GUI_CheckBox(iRect(GENERAL_OPTIONS_SHOW_MARKS_X, GENERAL_OPTIONS_SHOW_MARKS_Y, GENERAL_OPTIONS_SHOW_MARKS_W, GENERAL_OPTIONS_SHOW_MARKS_H), GENERAL_OPTIONS_SHOW_MARKS_TEXT, g_engine.hasShowMarks(), GENERAL_OPTIONS_SHOW_MARKS_EVENTID);
+	newCheckBox = new GUI_CheckBox(iRect(GENERAL_OPTIONS_SHOW_MARKS_X, GENERAL_OPTIONS_SHOW_MARKS_Y + offsetY, GENERAL_OPTIONS_SHOW_MARKS_W, GENERAL_OPTIONS_SHOW_MARKS_H), GENERAL_OPTIONS_SHOW_MARKS_TEXT, g_engine.hasShowMarks(), GENERAL_OPTIONS_SHOW_MARKS_EVENTID);
 	newCheckBox->setBoxEventCallback(&general_options_Events, GENERAL_OPTIONS_SHOW_MARKS_EVENTID);
 	newCheckBox->startEvents();
 	newWindow->addChild(newCheckBox);
-	newCheckBox = new GUI_CheckBox(iRect(GENERAL_OPTIONS_SHOW_FRAMES_X, GENERAL_OPTIONS_SHOW_FRAMES_Y, GENERAL_OPTIONS_SHOW_FRAMES_W, GENERAL_OPTIONS_SHOW_FRAMES_H), GENERAL_OPTIONS_SHOW_FRAMES_TEXT, g_engine.hasShowPvPFrames(), GENERAL_OPTIONS_SHOW_FRAMES_EVENTID);
+	newCheckBox = new GUI_CheckBox(iRect(GENERAL_OPTIONS_SHOW_FRAMES_X, GENERAL_OPTIONS_SHOW_FRAMES_Y + offsetY, GENERAL_OPTIONS_SHOW_FRAMES_W, GENERAL_OPTIONS_SHOW_FRAMES_H), GENERAL_OPTIONS_SHOW_FRAMES_TEXT, g_engine.hasShowPvPFrames(), GENERAL_OPTIONS_SHOW_FRAMES_EVENTID);
 	newCheckBox->setBoxEventCallback(&general_options_Events, GENERAL_OPTIONS_SHOW_FRAMES_EVENTID);
 	newCheckBox->startEvents();
 	newWindow->addChild(newCheckBox);
-	newCheckBox = new GUI_CheckBox(iRect(GENERAL_OPTIONS_SHOW_ICONS_X, GENERAL_OPTIONS_SHOW_ICONS_Y, GENERAL_OPTIONS_SHOW_ICONS_W, GENERAL_OPTIONS_SHOW_ICONS_H), GENERAL_OPTIONS_SHOW_ICONS_TEXT, g_engine.hasShowIcons(), GENERAL_OPTIONS_SHOW_ICONS_EVENTID);
+	newCheckBox = new GUI_CheckBox(iRect(GENERAL_OPTIONS_SHOW_ICONS_X, GENERAL_OPTIONS_SHOW_ICONS_Y + offsetY, GENERAL_OPTIONS_SHOW_ICONS_W, GENERAL_OPTIONS_SHOW_ICONS_H), GENERAL_OPTIONS_SHOW_ICONS_TEXT, g_engine.hasShowIcons(), GENERAL_OPTIONS_SHOW_ICONS_EVENTID);
 	newCheckBox->setBoxEventCallback(&general_options_Events, GENERAL_OPTIONS_SHOW_ICONS_EVENTID);
 	newCheckBox->startEvents();
 	newWindow->addChild(newCheckBox);
-	newCheckBox = new GUI_CheckBox(iRect(GENERAL_OPTIONS_SHOW_EFFECTS_X, GENERAL_OPTIONS_SHOW_EFFECTS_Y, GENERAL_OPTIONS_SHOW_EFFECTS_W, GENERAL_OPTIONS_SHOW_EFFECTS_H), GENERAL_OPTIONS_SHOW_EFFECTS_TEXT, g_engine.hasShowTextualEffects(), GENERAL_OPTIONS_SHOW_EFFECTS_EVENTID);
+	newCheckBox = new GUI_CheckBox(iRect(GENERAL_OPTIONS_SHOW_EFFECTS_X, GENERAL_OPTIONS_SHOW_EFFECTS_Y + offsetY, GENERAL_OPTIONS_SHOW_EFFECTS_W, GENERAL_OPTIONS_SHOW_EFFECTS_H), GENERAL_OPTIONS_SHOW_EFFECTS_TEXT, g_engine.hasShowTextualEffects(), GENERAL_OPTIONS_SHOW_EFFECTS_EVENTID);
 	newCheckBox->setBoxEventCallback(&general_options_Events, GENERAL_OPTIONS_SHOW_EFFECTS_EVENTID);
 	newCheckBox->startEvents();
 	newWindow->addChild(newCheckBox);
-	newCheckBox = new GUI_CheckBox(iRect(GENERAL_OPTIONS_SHOW_COOLDOWN_X, GENERAL_OPTIONS_SHOW_COOLDOWN_Y, GENERAL_OPTIONS_SHOW_COOLDOWN_W, GENERAL_OPTIONS_SHOW_COOLDOWN_H), GENERAL_OPTIONS_SHOW_COOLDOWN_TEXT, g_engine.hasShowCooldown(), GENERAL_OPTIONS_SHOW_COOLDOWN_EVENTID);
+	newCheckBox = new GUI_CheckBox(iRect(GENERAL_OPTIONS_SHOW_COOLDOWN_X, GENERAL_OPTIONS_SHOW_COOLDOWN_Y + offsetY, GENERAL_OPTIONS_SHOW_COOLDOWN_W, GENERAL_OPTIONS_SHOW_COOLDOWN_H), GENERAL_OPTIONS_SHOW_COOLDOWN_TEXT, g_engine.hasShowCooldown(), GENERAL_OPTIONS_SHOW_COOLDOWN_EVENTID);
 	newCheckBox->setBoxEventCallback(&general_options_Events, GENERAL_OPTIONS_SHOW_COOLDOWN_EVENTID);
 	newCheckBox->startEvents();
 	newWindow->addChild(newCheckBox);
-	newCheckBox = new GUI_CheckBox(iRect(GENERAL_OPTIONS_SHOW_ACTION1_X, GENERAL_OPTIONS_SHOW_ACTION1_Y, GENERAL_OPTIONS_SHOW_ACTION1_W, GENERAL_OPTIONS_SHOW_ACTION1_H), GENERAL_OPTIONS_SHOW_ACTION1_TEXT, false, GENERAL_OPTIONS_SHOW_ACTION1_EVENTID);
+	newCheckBox = new GUI_CheckBox(iRect(GENERAL_OPTIONS_SHOW_ACTION1_X, GENERAL_OPTIONS_SHOW_ACTION1_Y + offsetY, GENERAL_OPTIONS_SHOW_ACTION1_W, GENERAL_OPTIONS_SHOW_ACTION1_H), GENERAL_OPTIONS_SHOW_ACTION1_TEXT, false, GENERAL_OPTIONS_SHOW_ACTION1_EVENTID);
 	newCheckBox->setBoxEventCallback(&general_options_Events, GENERAL_OPTIONS_SHOW_ACTION1_EVENTID);
 	newCheckBox->startEvents();
 	newWindow->addChild(newCheckBox);
-	newCheckBox = new GUI_CheckBox(iRect(GENERAL_OPTIONS_SHOW_ACTION2_X, GENERAL_OPTIONS_SHOW_ACTION2_Y, GENERAL_OPTIONS_SHOW_ACTION2_W, GENERAL_OPTIONS_SHOW_ACTION2_H), GENERAL_OPTIONS_SHOW_ACTION2_TEXT, false, GENERAL_OPTIONS_SHOW_ACTION2_EVENTID);
+	newCheckBox = new GUI_CheckBox(iRect(GENERAL_OPTIONS_SHOW_ACTION2_X, GENERAL_OPTIONS_SHOW_ACTION2_Y + offsetY, GENERAL_OPTIONS_SHOW_ACTION2_W, GENERAL_OPTIONS_SHOW_ACTION2_H), GENERAL_OPTIONS_SHOW_ACTION2_TEXT, false, GENERAL_OPTIONS_SHOW_ACTION2_EVENTID);
 	newCheckBox->setBoxEventCallback(&general_options_Events, GENERAL_OPTIONS_SHOW_ACTION2_EVENTID);
 	newCheckBox->startEvents();
 	newWindow->addChild(newCheckBox);
-	newCheckBox = new GUI_CheckBox(iRect(GENERAL_OPTIONS_ASK_BUY_PRODUCTS_X, GENERAL_OPTIONS_ASK_BUY_PRODUCTS_Y, GENERAL_OPTIONS_ASK_BUY_PRODUCTS_W, GENERAL_OPTIONS_ASK_BUY_PRODUCTS_H), GENERAL_OPTIONS_ASK_BUY_PRODUCTS_TEXT, false, GENERAL_OPTIONS_ASK_BUY_PRODUCTS_EVENTID);
+	newCheckBox = new GUI_CheckBox(iRect(GENERAL_OPTIONS_ASK_BUY_PRODUCTS_X, GENERAL_OPTIONS_ASK_BUY_PRODUCTS_Y + offsetY, GENERAL_OPTIONS_ASK_BUY_PRODUCTS_W, GENERAL_OPTIONS_ASK_BUY_PRODUCTS_H), GENERAL_OPTIONS_ASK_BUY_PRODUCTS_TEXT, false, GENERAL_OPTIONS_ASK_BUY_PRODUCTS_EVENTID);
 	newCheckBox->setBoxEventCallback(&general_options_Events, GENERAL_OPTIONS_ASK_BUY_PRODUCTS_EVENTID);
 	newCheckBox->startEvents();
 	newWindow->addChild(newCheckBox);
-	GUI_Button* newButton = new GUI_Button(iRect(GENERAL_OPTIONS_WIDTH - 56, GENERAL_OPTIONS_HEIGHT - 30, GUI_UI_BUTTON_43PX_GRAY_UP_W, GUI_UI_BUTTON_43PX_GRAY_UP_H), "Cancel", CLIENT_GUI_ESCAPE_TRIGGER);
+	GUI_Button* newButton = new GUI_Button(iRect(GENERAL_OPTIONS_WIDTH - 56, windowHeight - 30, GUI_UI_BUTTON_43PX_GRAY_UP_W, GUI_UI_BUTTON_43PX_GRAY_UP_H), "Cancel", CLIENT_GUI_ESCAPE_TRIGGER);
 	newButton->setButtonEventCallback(&general_options_Events, GENERAL_OPTIONS_CANCEL_EVENTID);
 	newButton->startEvents();
 	newWindow->addChild(newButton);
-	newButton = new GUI_Button(iRect(GENERAL_OPTIONS_WIDTH - 109, GENERAL_OPTIONS_HEIGHT - 30, GUI_UI_BUTTON_43PX_GRAY_UP_W, GUI_UI_BUTTON_43PX_GRAY_UP_H), "Ok", CLIENT_GUI_ENTER_TRIGGER);
+	newButton = new GUI_Button(iRect(GENERAL_OPTIONS_WIDTH - 109, windowHeight - 30, GUI_UI_BUTTON_43PX_GRAY_UP_W, GUI_UI_BUTTON_43PX_GRAY_UP_H), "Ok", CLIENT_GUI_ENTER_TRIGGER);
 	newButton->setButtonEventCallback(&general_options_Events, GENERAL_OPTIONS_OK_EVENTID);
 	newButton->startEvents();
 	newWindow->addChild(newButton);
-	newButton = new GUI_Button(iRect(GENERAL_OPTIONS_WIDTH - 162, GENERAL_OPTIONS_HEIGHT - 30, GUI_UI_BUTTON_43PX_GRAY_UP_W, GUI_UI_BUTTON_43PX_GRAY_UP_H), "Help");
+	newButton = new GUI_Button(iRect(GENERAL_OPTIONS_WIDTH - 162, windowHeight - 30, GUI_UI_BUTTON_43PX_GRAY_UP_W, GUI_UI_BUTTON_43PX_GRAY_UP_H), "Help");
 	newButton->setButtonEventCallback(&general_options_Events, GENERAL_OPTIONS_HELP_EVENTID);
 	newButton->startEvents();
 	newWindow->addChild(newButton);
-	GUI_Separator* newSeparator = new GUI_Separator(iRect(13, GENERAL_OPTIONS_HEIGHT - 40, GENERAL_OPTIONS_WIDTH - 26, 2));
+	GUI_Separator* newSeparator = new GUI_Separator(iRect(13, windowHeight - 40, GENERAL_OPTIONS_WIDTH - 26, 2));
 	newWindow->addChild(newSeparator);
 	g_engine.addWindow(newWindow, true);
 }

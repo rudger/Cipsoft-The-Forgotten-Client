@@ -575,7 +575,7 @@ void Creature::renderInformations(Sint32 posX, Sint32 posY, Sint32 drawX, Sint32
 
 	Sint32 POSX = posX + 9;
 	Sint32 POSY = posY + 18;
-	if(m_id == g_game.getPlayerID() && g_game.hasGameFeature(GAME_FEATURE_MANA_BAR))
+	if(m_id == g_game.getPlayerID() && g_game.hasGameFeature(GAME_FEATURE_MANA_BAR) && g_engine.hasShowManaBar())
 	{
 		//Mana bar under the health bar, the server only sends mana of the local player
 		renderer->fillRectangle(posX - 14, posY + 15, 28, 4, 0, 0, 0, 255);
