@@ -304,7 +304,6 @@ class Engine
 		SDL_INLINE void setShowMarks(bool showMarks) {m_showMarks = showMarks;}
 		SDL_INLINE void setShowPvPFrames(bool showPvPFrames) {m_showPvPFrames = showPvPFrames;}
 		SDL_INLINE void setShowIcons(bool showIcons) {m_showIcons = showIcons;}
-		SDL_INLINE void setShowTextualEffects(bool showTextualEffects) {m_showTextualEffects = showTextualEffects;}
 		SDL_INLINE void setShowCooldown(bool showCooldown) {m_showCooldown = showCooldown;}
 		SDL_INLINE bool hasClassicControl() {return m_classicControl;}
 		SDL_INLINE bool hasAutoChaseOff() {return m_autoChaseOff;}
@@ -318,7 +317,6 @@ class Engine
 		SDL_INLINE bool hasShowMarks() {return m_showMarks;}
 		SDL_INLINE bool hasShowPvPFrames() {return m_showPvPFrames;}
 		SDL_INLINE bool hasShowIcons() {return m_showIcons;}
-		SDL_INLINE bool hasShowTextualEffects() {return m_showTextualEffects;}
 		SDL_INLINE bool hasShowCooldown() {return m_showCooldown;}
 
 		SDL_INLINE void setShowInfoMessages(bool infoMessages) {m_showInfoMessages = infoMessages;}
@@ -507,7 +505,6 @@ class Engine
 		bool m_showMarks = true;
 		bool m_showPvPFrames = true;
 		bool m_showIcons = true;
-		bool m_showTextualEffects = true;
 		bool m_showCooldown = true;
 
 		bool m_showInfoMessages = true;

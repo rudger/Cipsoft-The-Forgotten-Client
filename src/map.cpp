@@ -670,27 +670,24 @@ void Map::addOnscreenText(OnscreenMessages position, MessageMode mode, const std
 
 void Map::addAnimatedText(const Position& position, Uint8 color, const std::string& text)
 {
-	if(g_engine.hasShowTextualEffects())
+	Sint32 additionalOffset = 0;
+	for(std::vector<AnimatedText*>::iterator it = m_animatedTexts.begin(), end = m_animatedTexts.end(); it != end; ++it)
 	{
-		Sint32 additionalOffset = 0;
-		for(std::vector<AnimatedText*>::iterator it = m_animatedTexts.begin(), end = m_animatedTexts.end(); it != end; ++it)
+		AnimatedText* animatedText = (*it);
+		if(animatedText->getPosition() == position)
 		{
-			AnimatedText* animatedText = (*it);
-			if(animatedText->getPosition() == position)
+			if(animatedText->merge(color, text))
+				return;
+			else
 			{
-				if(animatedText->merge(color, text))
-					return;
-				else
-				{
-					if(animatedText->needAdditionalOffset())
-						additionalOffset += 10;
-				}
+				if(animatedText->needAdditionalOffset())
+					additionalOffset += 10;
 			}
 		}
-
-		AnimatedText* newAnimatedText = new AnimatedText(position, color, additionalOffset, text);
-		m_animatedTexts.push_back(newAnimatedText);
 	}
+
+	AnimatedText* newAnimatedText = new AnimatedText(position, color, additionalOffset, text);
+	m_animatedTexts.push_back(newAnimatedText);
 }
 
 void Map::addStaticText(const Position& position, const std::string& name, MessageMode mode, const std::string& text)

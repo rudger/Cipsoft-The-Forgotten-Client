@@ -333,8 +333,6 @@ void Engine::loadCFG()
 		m_showPvPFrames = (data == "yes" ? true : false);
 		data = cfg.fetchKey("CreatureIcons");
 		m_showIcons = (data == "yes" ? true : false);
-		data = cfg.fetchKey("TextualEffects");
-		m_showTextualEffects = (data == "yes" ? true : false);
 		data = cfg.fetchKey("CooldownBar");
 		m_showCooldown = (data == "yes" ? true : false);
 
@@ -678,8 +676,6 @@ void Engine::saveCFG()
 		cfg.insertKey("CreaturePvPFrames", std::string(g_buffer, SDL_static_cast(size_t, len)));
 		len = SDL_snprintf(g_buffer, sizeof(g_buffer), "%s", (m_showIcons ? "yes" : "no"));
 		cfg.insertKey("CreatureIcons", std::string(g_buffer, SDL_static_cast(size_t, len)));
-		len = SDL_snprintf(g_buffer, sizeof(g_buffer), "%s", (m_showTextualEffects ? "yes" : "no"));
-		cfg.insertKey("TextualEffects", std::string(g_buffer, SDL_static_cast(size_t, len)));
 		len = SDL_snprintf(g_buffer, sizeof(g_buffer), "%s", (m_showCooldown ? "yes" : "no"));
 		cfg.insertKey("CooldownBar", std::string(g_buffer, SDL_static_cast(size_t, len)));
 
