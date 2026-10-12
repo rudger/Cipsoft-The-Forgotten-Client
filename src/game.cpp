@@ -549,7 +549,10 @@ void Game::processTextMessage(MessageMode mode, const std::string& text, Uint32 
 		case MessageTradeNpc:
 		case MessageHotkeyUse:
 		{
-			g_map.addOnscreenText(ONSCREEN_MESSAGE_CENTER_HIGH, mode, text);
+			//"Show monster loot message" only hides the loot text in the game window
+			bool lootMessage = (mode == MessageLoot || text.compare(0, 8, "Loot of ") == 0);
+			if(!lootMessage || g_engine.hasShowLootMessage())
+				g_map.addOnscreenText(ONSCREEN_MESSAGE_CENTER_HIGH, mode, text);
 			if(g_engine.hasShowInfoMessages())
 				g_chat.addChannelMessage(CHANNEL_ID_SERVERLOG, mode, 0, "", 0, text, time(NULL));
 		}

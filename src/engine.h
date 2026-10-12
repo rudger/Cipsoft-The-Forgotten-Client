@@ -314,6 +314,8 @@ class Engine
 		SDL_INLINE void setShowManaBar(bool showManaBar) {m_showManaBar = showManaBar;}
 		SDL_INLINE void setTabAttack(bool tabAttack) {m_tabAttack = tabAttack;}
 		SDL_INLINE bool hasTabAttack() {return m_tabAttack;}
+		SDL_INLINE void setShowLootMessage(bool showLootMessage) {m_showLootMessage = showLootMessage;}
+		SDL_INLINE bool hasShowLootMessage() {return m_showLootMessage;}
 		SDL_INLINE bool hasShowManaBar() {return m_showManaBar;}
 		SDL_INLINE bool hasShowNames() {return m_showNames;}
 		SDL_INLINE bool hasShowMarks() {return m_showMarks;}
@@ -501,6 +503,7 @@ class Engine
 		bool m_smartWalking = false;
 		bool m_showManaBar = true;
 		bool m_tabAttack = false;
+		bool m_showLootMessage = true;
 		bool m_chatInputEnabled = true;
 		bool m_chatInputTemporary = false;
 		bool m_showNames = true;
