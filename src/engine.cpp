@@ -329,8 +329,6 @@ void Engine::loadCFG()
 		m_showNames = (SDL_static_cast(Uint32, SDL_strtoul(data.c_str(), NULL, 10)) > 0 ? true : false);
 		data = cfg.fetchKey("CreatureMarks");
 		m_showMarks = (data == "yes" ? true : false);
-		data = cfg.fetchKey("CreaturePvPFrames");
-		m_showPvPFrames = (data == "yes" ? true : false);
 		data = cfg.fetchKey("CreatureIcons");
 		m_showIcons = (data == "yes" ? true : false);
 		data = cfg.fetchKey("CooldownBar");
@@ -672,8 +670,6 @@ void Engine::saveCFG()
 		cfg.insertKey("CreatureInfo", std::string(g_buffer, SDL_static_cast(size_t, len)));
 		len = SDL_snprintf(g_buffer, sizeof(g_buffer), "%s", (m_showMarks ? "yes" : "no"));
 		cfg.insertKey("CreatureMarks", std::string(g_buffer, SDL_static_cast(size_t, len)));
-		len = SDL_snprintf(g_buffer, sizeof(g_buffer), "%s", (m_showPvPFrames ? "yes" : "no"));
-		cfg.insertKey("CreaturePvPFrames", std::string(g_buffer, SDL_static_cast(size_t, len)));
 		len = SDL_snprintf(g_buffer, sizeof(g_buffer), "%s", (m_showIcons ? "yes" : "no"));
 		cfg.insertKey("CreatureIcons", std::string(g_buffer, SDL_static_cast(size_t, len)));
 		len = SDL_snprintf(g_buffer, sizeof(g_buffer), "%s", (m_showCooldown ? "yes" : "no"));

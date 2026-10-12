@@ -411,7 +411,7 @@ void Creature::render(Sint32 posX, Sint32 posY)
 		squareW -= 4;
 		squareH -= 4;
 	}
-	if(m_showStaticSquare && g_engine.hasShowPvPFrames())
+	if(m_showStaticSquare)
 	{
 		renderer->drawRectangle(squareX, squareY, squareW, squareH, 2, m_staticSquareRed, m_staticSquareGreen, m_staticSquareBlue, 255);
 		squareX += 2;
@@ -733,7 +733,7 @@ void Creature::renderOnBattle(Sint32 posX, Sint32 posY, bool renderManaBar)
 		squareW -= 2;
 		squareH -= 2;
 	}
-	if(m_showStaticSquare && g_engine.hasShowPvPFrames())
+	if(m_showStaticSquare)
 	{
 		renderer->drawRectangle(squareX, squareY, squareW, squareH, 1, m_staticSquareRed, m_staticSquareGreen, m_staticSquareBlue, 255);
 		squareX += 1;
