@@ -150,7 +150,6 @@ class Engine
 		void bindHotkeyItem(SDL_Keycode key, Uint16 mods, Uint16 itemId, Uint8 itemSubtype, Uint8 usageType);
 		void beginHotkeyItemSelection(SDL_Keycode key, Uint16 mods);
 		void resetToDefaultHotkeys(bool wasd);
-		void attackNearestMonster();
 
 		Sint32 calculateMainHeight();
 		void recalculateGameWindow();
@@ -312,8 +311,6 @@ class Engine
 		SDL_INLINE bool isChatInputTemporary() {return m_chatInputTemporary;}
 		SDL_INLINE bool hasSmartWalking() {return m_smartWalking;}
 		SDL_INLINE void setShowManaBar(bool showManaBar) {m_showManaBar = showManaBar;}
-		SDL_INLINE void setSpaceAttack(bool spaceAttack) {m_spaceAttack = spaceAttack;}
-		SDL_INLINE bool hasSpaceAttack() {return m_spaceAttack;}
 		SDL_INLINE bool hasShowManaBar() {return m_showManaBar;}
 		SDL_INLINE bool hasShowNames() {return m_showNames;}
 		SDL_INLINE bool hasShowMarks() {return m_showMarks;}
@@ -500,8 +497,6 @@ class Engine
 		bool m_wasdWalking = false;
 		bool m_smartWalking = false;
 		bool m_showManaBar = true;
-		bool m_spaceAttack = false;
-		bool m_ignoreNextSpace = false;
 		bool m_chatInputEnabled = true;
 		bool m_chatInputTemporary = false;
 		bool m_showNames = true;
