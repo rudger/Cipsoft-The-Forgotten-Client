@@ -1731,7 +1731,8 @@ void Engine::onKeyDown(SDL_Event& event)
 				case CLIENT_HOTKEY_MINIMAP_ZOOMOUT: g_game.minimapZoomOut(); break;
 				case CLIENT_HOTKEY_UI_TOGGLECREATUREINFO:
 				{
-					//Toggle creature info
+					if(event.key.repeat == 0)
+						setShowNames(!hasShowNames());
 				}
 				break;
 				case CLIENT_HOTKEY_COMBAT_SETOFFENSIVE:

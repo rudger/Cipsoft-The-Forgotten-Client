@@ -567,15 +567,18 @@ void Creature::renderInformations(Sint32 posX, Sint32 posY, Sint32 drawX, Sint32
 	}
 	posX += SDL_static_cast(Sint32, drawX * scale);
 	posY += SDL_static_cast(Sint32, drawY * scale) - 16;
-	g_engine.drawFont(CLIENT_FONT_OUTLINED, posX - m_nameLen, posY, m_name, red, green, blue, CLIENT_FONT_ALIGN_LEFT);
-
 	auto& renderer = g_engine.getRender();
-	renderer->fillRectangle(posX - 14, posY + 12, 28, 4, 0, 0, 0, 255);
-	renderer->fillRectangle(posX - 13, posY + 13, SDL_static_cast(Sint32, m_health * 0.26f), 2, red, green, blue, 255);
+	const bool showNames = g_engine.hasShowNames();
+	if(showNames)
+	{
+		g_engine.drawFont(CLIENT_FONT_OUTLINED, posX - m_nameLen, posY, m_name, red, green, blue, CLIENT_FONT_ALIGN_LEFT);
+		renderer->fillRectangle(posX - 14, posY + 12, 28, 4, 0, 0, 0, 255);
+		renderer->fillRectangle(posX - 13, posY + 13, SDL_static_cast(Sint32, m_health * 0.26f), 2, red, green, blue, 255);
+	}
 
 	Sint32 POSX = posX + 9;
 	Sint32 POSY = posY + 18;
-	if(m_id == g_game.getPlayerID() && g_game.hasGameFeature(GAME_FEATURE_MANA_BAR) && g_engine.hasShowManaBar())
+	if(showNames && m_id == g_game.getPlayerID() && g_game.hasGameFeature(GAME_FEATURE_MANA_BAR) && g_engine.hasShowManaBar())
 	{
 		//Mana bar under the health bar, the server only sends mana of the local player
 		renderer->fillRectangle(posX - 14, posY + 15, 28, 4, 0, 0, 0, 255);
