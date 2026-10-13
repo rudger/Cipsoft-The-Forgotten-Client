@@ -338,6 +338,12 @@ void Engine::loadCFG()
 		data = cfg.fetchKey("MoveStacksDirectly");
 		if(!data.empty())
 			m_moveStacksDirectly = (data == "yes" ? true : false);
+		data = cfg.fetchKey("ShowPing");
+		if(!data.empty())
+			m_showPing = (data == "yes" ? true : false);
+		data = cfg.fetchKey("ShowFPS");
+		if(!data.empty())
+			m_showFPS = (data == "yes" ? true : false);
 		data = cfg.fetchKey("CreatureInfo");
 		m_showNames = (SDL_static_cast(Uint32, SDL_strtoul(data.c_str(), NULL, 10)) > 0 ? true : false);
 		data = cfg.fetchKey("CreatureMarks");
@@ -688,6 +694,10 @@ void Engine::saveCFG()
 		cfg.insertKey("AutoOpenPrivateChat", std::string(g_buffer, SDL_static_cast(size_t, len)));
 		len = SDL_snprintf(g_buffer, sizeof(g_buffer), "%s", (m_moveStacksDirectly ? "yes" : "no"));
 		cfg.insertKey("MoveStacksDirectly", std::string(g_buffer, SDL_static_cast(size_t, len)));
+		len = SDL_snprintf(g_buffer, sizeof(g_buffer), "%s", (m_showPing ? "yes" : "no"));
+		cfg.insertKey("ShowPing", std::string(g_buffer, SDL_static_cast(size_t, len)));
+		len = SDL_snprintf(g_buffer, sizeof(g_buffer), "%s", (m_showFPS ? "yes" : "no"));
+		cfg.insertKey("ShowFPS", std::string(g_buffer, SDL_static_cast(size_t, len)));
 		len = SDL_snprintf(g_buffer, sizeof(g_buffer), "%u", (m_showNames ? 2 : 0));
 		cfg.insertKey("CreatureInfo", std::string(g_buffer, SDL_static_cast(size_t, len)));
 		len = SDL_snprintf(g_buffer, sizeof(g_buffer), "%s", (m_showMarks ? "yes" : "no"));
@@ -3705,6 +3715,38 @@ void Engine::redraw()
 		m_surface->drawBackground(GUI_BACKGROUND_IMAGE, GUI_BACKGROUND_X, GUI_BACKGROUND_Y, GUI_BACKGROUND_W, GUI_BACKGROUND_H, 0, 0, m_windowW, m_windowH);
 		if(g_mainWindow)
 			g_mainWindow->render();
+	}
+
+	if(m_ingame && (m_showFPS || m_showPing))
+	{
+		//FPS and ping in the top left corner of the game area
+		extern Uint16 g_lastFrames;
+		Sint32 posX = m_gameBackgroundRect.x1 + 5;
+		Sint32 posY = m_gameBackgroundRect.y1 + 5;
+		if(m_showFPS)
+		{
+			Sint32 len = SDL_snprintf(g_buffer, sizeof(g_buffer), "FPS: %u", g_lastFrames);
+			drawFont(CLIENT_FONT_OUTLINED, posX, posY, std::string(g_buffer, SDL_static_cast(size_t, len)), 255, 255, 255, CLIENT_FONT_ALIGN_LEFT);
+			posY += 14;
+		}
+		if(m_showPing)
+		{
+			Uint8 red = 0, green = 255, blue = 0;
+			if(g_ping >= 300)
+			{
+				red = 255;
+				green = 64;
+				blue = 64;
+			}
+			else if(g_ping >= 150)
+			{
+				red = 255;
+				green = 255;
+				blue = 0;
+			}
+			Sint32 len = SDL_snprintf(g_buffer, sizeof(g_buffer), "Ping: %u ms", SDL_static_cast(Uint32, g_ping));
+			drawFont(CLIENT_FONT_OUTLINED, posX, posY, std::string(g_buffer, SDL_static_cast(size_t, len)), red, green, blue, CLIENT_FONT_ALIGN_LEFT);
+		}
 	}
 
 	if(m_showPerformance)

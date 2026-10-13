@@ -320,6 +320,10 @@ class Engine
 		SDL_INLINE bool hasAutoOpenPrivateChat() {return m_autoOpenPrivateChat;}
 		SDL_INLINE void setMoveStacksDirectly(bool moveStacksDirectly) {m_moveStacksDirectly = moveStacksDirectly;}
 		SDL_INLINE bool hasMoveStacksDirectly() {return m_moveStacksDirectly;}
+		SDL_INLINE void setShowPing(bool showPing) {m_showPing = showPing;}
+		SDL_INLINE bool hasShowPing() {return m_showPing;}
+		SDL_INLINE void setShowFPS(bool showFPS) {m_showFPS = showFPS;}
+		SDL_INLINE bool hasShowFPS() {return m_showFPS;}
 		SDL_INLINE bool hasShowManaBar() {return m_showManaBar;}
 		SDL_INLINE bool hasShowNames() {return m_showNames;}
 		SDL_INLINE bool hasShowMarks() {return m_showMarks;}
@@ -510,6 +514,8 @@ class Engine
 		bool m_showLootMessage = true;
 		bool m_autoOpenPrivateChat = false;
 		bool m_moveStacksDirectly = false;
+		bool m_showPing = false;
+		bool m_showFPS = false;
 		bool m_chatInputEnabled = true;
 		bool m_chatInputTemporary = false;
 		bool m_showNames = true;
