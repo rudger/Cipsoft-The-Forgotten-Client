@@ -66,6 +66,11 @@ ClientFeatures = {
                 -- NPCs are recognised by their creature id (0x80000000 and up).
                 GameBlueNPCs = true,
 
+                -- Pigeon icon in the inventory while standing in a protection zone.
+                -- The server must send it: set send_pz_icon = true in the server
+                -- config.cfg, otherwise the client disconnects.
+                GamePlayerIconsU16 = true,
+
                 -- Food time in the skills window, under Speed (0:05 = 5 minutes).
                 -- The server must send it: set send_food_time = true in the
                 -- server config.cfg, otherwise the client disconnects.
