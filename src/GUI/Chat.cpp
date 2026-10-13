@@ -519,6 +519,24 @@ Channel* Chat::openPrivateChannelInBackground(const std::string& receiver)
 	return NULL;
 }
 
+// Shorten a channel name with "..." so it fits inside its 96 pixel tab.
+static void fitChannelName(const std::string& name, std::string& result)
+{
+	const Uint32 maxWidth = 88;
+	if(g_engine.calculateFontWidth(CLIENT_FONT_OUTLINED, name) <= maxWidth)
+	{
+		result = name;
+		return;
+	}
+
+	const Uint32 dotsWidth = g_engine.calculateFontWidth(CLIENT_FONT_OUTLINED, "...");
+	size_t len = name.length();
+	while(len > 0 && g_engine.calculateFontWidth(CLIENT_FONT_OUTLINED, name, 0, len) + dotsWidth > maxWidth)
+		--len;
+
+	result.assign(name, 0, len).append("...");
+}
+
 void Chat::openChannel(Uint32 channelId, const std::string channelName, bool privateChannel, bool closable)
 {
 	for(std::vector<Channel>::iterator it = m_channels.begin(), end = m_channels.end(); it != end; ++it)
@@ -1653,23 +1671,25 @@ void Chat::render(iRect& rect)
 
 	Sint32 posX = rect.x1 + 18;
 	renderer->setClipRect(posX, rect.y1 + 5, rect.x2 - 100, 18);
+	std::string tabName;
 	for(size_t it = m_currentPage, end = UTIL_min<size_t>(m_channels.size(), it + calculatedPages.second + 1); it != end; ++it)
 	{
 		Channel& currentChannel = m_channels[it];
+		fitChannelName(currentChannel.channelName, tabName);
 		if(m_selectedChannel == it)
 		{
 			renderer->drawPicture(GUI_UI_IMAGE, GUI_UI_ICON_ACTIVE_CHANNEL_X, GUI_UI_ICON_ACTIVE_CHANNEL_Y, posX, rect.y1 + 5, GUI_UI_ICON_ACTIVE_CHANNEL_W, GUI_UI_ICON_ACTIVE_CHANNEL_H);
-			g_engine.drawFont(CLIENT_FONT_OUTLINED, posX + 48, rect.y1 + 9, currentChannel.channelName, 223, 223, 223, CLIENT_FONT_ALIGN_CENTER);
+			g_engine.drawFont(CLIENT_FONT_OUTLINED, posX + 48, rect.y1 + 9, tabName, 223, 223, 223, CLIENT_FONT_ALIGN_CENTER);
 		}
 		else
 		{
 			renderer->drawPicture(GUI_UI_IMAGE, GUI_UI_ICON_UNACTIVE_CHANNEL_X, GUI_UI_ICON_UNACTIVE_CHANNEL_Y, posX, rect.y1 + 5, GUI_UI_ICON_UNACTIVE_CHANNEL_W, GUI_UI_ICON_UNACTIVE_CHANNEL_H);
 			if(currentChannel.highlightTime >= g_frameTime)
-				g_engine.drawFont(CLIENT_FONT_OUTLINED, posX + 48, rect.y1 + 9, currentChannel.channelName, 250, 250, 250, CLIENT_FONT_ALIGN_CENTER);
+				g_engine.drawFont(CLIENT_FONT_OUTLINED, posX + 48, rect.y1 + 9, tabName, 250, 250, 250, CLIENT_FONT_ALIGN_CENTER);
 			else if(currentChannel.unreadMessage)
-				g_engine.drawFont(CLIENT_FONT_OUTLINED, posX + 48, rect.y1 + 9, currentChannel.channelName, 250, 96, 96, CLIENT_FONT_ALIGN_CENTER);
+				g_engine.drawFont(CLIENT_FONT_OUTLINED, posX + 48, rect.y1 + 9, tabName, 250, 96, 96, CLIENT_FONT_ALIGN_CENTER);
 			else
-				g_engine.drawFont(CLIENT_FONT_OUTLINED, posX + 48, rect.y1 + 9, currentChannel.channelName, 127, 127, 127, CLIENT_FONT_ALIGN_CENTER);
+				g_engine.drawFont(CLIENT_FONT_OUTLINED, posX + 48, rect.y1 + 9, tabName, 127, 127, 127, CLIENT_FONT_ALIGN_CENTER);
 		}
 		posX += 96;
 	}
