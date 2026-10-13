@@ -157,6 +157,7 @@ namespace
 		{"GameExtraSidebars", GAME_FEATURE_EXTRA_SIDEBARS},
 		{"GameManaBar", GAME_FEATURE_MANA_BAR},
 		{"GameSkillsSpeed", GAME_FEATURE_SKILLS_SPEED},
+		{"GameBlueNPCs", GAME_FEATURE_BLUE_NPCS},
 		{"GameQuestTracker", GAME_FEATURE_QUEST_TRACKER},
 		{"GameTime", GAME_FEATURE_GAMETIME},
 		{"GameCompedium", GAME_FEATURE_COMPEDIUM},

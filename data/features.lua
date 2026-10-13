@@ -62,6 +62,10 @@ ClientFeatures = {
                 -- Speed in the skills window, under Capacity.
                 GameSkillsSpeed = true,
 
+                -- NPC names and health bars in blue (screen and battle list).
+                -- NPCs are recognised by their creature id (0x80000000 and up).
+                GameBlueNPCs = true,
+
                 -- Food time in the skills window, under Speed (0:05 = 5 minutes).
                 -- The server must send it: set send_food_time = true in the
                 -- server config.cfg, otherwise the client disconnects.

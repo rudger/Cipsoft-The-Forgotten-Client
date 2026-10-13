@@ -653,7 +653,13 @@ void Creature::renderOnBattle(Sint32 posX, Sint32 posY, bool renderManaBar)
 	}
 
 	Uint8 red, green, blue;
-	if(m_isVisible)
+	if(m_isVisible && m_type == CREATURETYPE_NPC && g_game.hasGameFeature(GAME_FEATURE_BLUE_NPCS))
+	{
+		red = m_red;
+		green = m_green;
+		blue = m_blue;
+	}
+	else if(m_isVisible)
 	{
 		red = 192;
 		green = 192;
@@ -856,6 +862,13 @@ void Creature::setHealth(Uint8 health)
 		m_red = 0;
 		m_green = 192;
 		m_blue = 0;
+	}
+
+	if(m_type == CREATURETYPE_NPC && g_game.hasGameFeature(GAME_FEATURE_BLUE_NPCS))
+	{
+		m_red = 64;
+		m_green = 144;
+		m_blue = 255;
 	}
 }
 
@@ -1094,6 +1107,7 @@ void Creature::setEmblem(Uint8 emblem)
 void Creature::setType(Uint8 type)
 {
 	m_type = type;
+	setHealth(m_health);//Refresh the name and health bar colors
 	switch(type)
 	{
 		case CREATURETYPE_SUMMON_OWN:
