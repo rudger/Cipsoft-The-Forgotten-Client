@@ -866,8 +866,9 @@ void Creature::setHealth(Uint8 health)
 
 	if(m_type == CREATURETYPE_NPC && g_game.hasGameFeature(GAME_FEATURE_BLUE_NPCS))
 	{
-		m_red = 64;
-		m_green = 144;
+		//Same blue as the mana bar
+		m_red = 0;
+		m_green = 0;
 		m_blue = 255;
 	}
 }
