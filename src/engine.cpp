@@ -325,6 +325,7 @@ void Engine::loadCFG()
 		data = cfg.fetchKey("ShowManaBar");
 		if(!data.empty())
 			m_showManaBar = (data == "yes" ? true : false);
+		UTIL_trainerLoadCFG(cfg);
 		data = cfg.fetchKey("TabAttack");
 		if(!data.empty())
 			m_tabAttack = (data == "yes" ? true : false);
@@ -675,6 +676,7 @@ void Engine::saveCFG()
 		cfg.insertKey("SmartWalking", std::string(g_buffer, SDL_static_cast(size_t, len)));
 		len = SDL_snprintf(g_buffer, sizeof(g_buffer), "%s", (m_showManaBar ? "yes" : "no"));
 		cfg.insertKey("ShowManaBar", std::string(g_buffer, SDL_static_cast(size_t, len)));
+		UTIL_trainerSaveCFG(cfg);
 		len = SDL_snprintf(g_buffer, sizeof(g_buffer), "%s", (m_tabAttack ? "yes" : "no"));
 		cfg.insertKey("TabAttack", std::string(g_buffer, SDL_static_cast(size_t, len)));
 		len = SDL_snprintf(g_buffer, sizeof(g_buffer), "%s", (m_showLootMessage ? "yes" : "no"));
@@ -3596,7 +3598,10 @@ void Engine::setConsoleHeight(Sint32 height)
 void Engine::update()
 {
 	if(m_ingame)
+	{
 		g_map.update();
+		UTIL_trainerThink();
+	}
 }
 
 void Engine::redraw()

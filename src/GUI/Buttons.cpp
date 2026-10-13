@@ -78,6 +78,10 @@
 #define BUTTONS_PARTY_DESCRIPTION1 "Open party list"
 #define BUTTONS_PARTY_DESCRIPTION2 "Close party list"
 #define BUTTONS_PARTY_EVENTID 1017
+#define BUTTONS_TRAINER_TITLE "Trainer"
+#define BUTTONS_TRAINER_DESCRIPTION1 "Open trainer window"
+#define BUTTONS_TRAINER_DESCRIPTION2 "Close trainer window"
+#define BUTTONS_TRAINER_EVENTID 1018
 
 extern Engine g_engine;
 extern Game g_game;
@@ -86,6 +90,7 @@ extern bool g_haveSkillsOpen;
 extern bool g_haveBattleOpen;
 extern bool g_haveVIPOpen;
 extern bool g_havePartyOpen;
+extern bool g_haveTrainerOpen;
 
 bool CheckSkillsWindowOpen() {return g_haveSkillsOpen;}
 bool CheckBattleWindowOpen() {return g_haveBattleOpen;}
@@ -96,6 +101,7 @@ bool CheckSpellsWindowOpen() {return false;}
 bool CheckAnalyticsWindowOpen() {return false;}
 bool CheckLeaderboardWindowOpen() {return false;}
 bool CheckPartyWindowOpen() {return g_havePartyOpen;}
+bool CheckTrainerWindowOpen() {return g_haveTrainerOpen;}
 
 void buttons_Events(Uint32 event, Sint32)
 {
@@ -119,6 +125,7 @@ void buttons_Events(Uint32 event, Sint32)
 		case BUTTONS_LEADERBOARD_EVENTID: break;
 		case BUTTONS_FRIENDS_EVENTID: break;
 		case BUTTONS_PARTY_EVENTID: UTIL_togglePartyWindow(); break;
+		case BUTTONS_TRAINER_EVENTID: UTIL_toggleTrainerWindow(); break;
 		default: break;
 	}
 }
@@ -140,7 +147,7 @@ void UTIL_createButtonsPanel()
 		else if(g_clientVersion >= 1102)
 			pPanel = new GUI_PanelWindow(iRect(0, 0, GAME_PANEL_FIXED_WIDTH - 4, 48), false, GUI_PANEL_WINDOW_BUTTONS);
 		else
-			pPanel = new GUI_PanelWindow(iRect(0, 0, GAME_PANEL_FIXED_WIDTH - 4, 26), false, GUI_PANEL_WINDOW_BUTTONS);
+			pPanel = new GUI_PanelWindow(iRect(0, 0, GAME_PANEL_FIXED_WIDTH - 4, 48), false, GUI_PANEL_WINDOW_BUTTONS);
 	}
 
 	if(g_clientVersion >= 1220)
@@ -610,6 +617,11 @@ void UTIL_createButtonsPanel()
 		newButton->setButtonEventCallback(&buttons_Events, BUTTONS_LOGOUT_EVENTID);
 		newButton->startEvents();
 		pPanel->addChild(newButton);
+		newRadioButton = new GUI_RadioButton(iRect(8, 25, GUI_UI_BUTTON_34PX_GRAY_UP_W, GUI_UI_BUTTON_34PX_GRAY_UP_H), BUTTONS_TRAINER_TITLE, 0, BUTTONS_TRAINER_DESCRIPTION1);
+		newRadioButton->setRadioEventCallback(&CheckTrainerWindowOpen, BUTTONS_TRAINER_DESCRIPTION2);
+		newRadioButton->setButtonEventCallback(&buttons_Events, BUTTONS_TRAINER_EVENTID);
+		newRadioButton->startEvents();
+		pPanel->addChild(newRadioButton);
 	}
 	
 	if(newWindow)

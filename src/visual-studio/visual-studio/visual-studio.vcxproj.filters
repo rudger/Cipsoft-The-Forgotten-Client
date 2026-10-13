@@ -354,6 +354,9 @@
     <ClCompile Include="..\..\GUI\VipWindow.cpp">
       <Filter>Source Files\GUI</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\GUI\Trainer.cpp">
+      <Filter>Source Files\GUI</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\GUI\Inventory.cpp">
       <Filter>Source Files\GUI</Filter>
     </ClCompile>

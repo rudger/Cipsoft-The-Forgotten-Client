@@ -134,6 +134,12 @@ void UTIL_refreshPartyWindow();
 
 //VIP widget
 void UTIL_toggleVipWindow();
+class Config;
+void UTIL_toggleTrainerWindow();
+void UTIL_trainerSettings();
+void UTIL_trainerThink();
+void UTIL_trainerLoadCFG(Config& cfg);
+void UTIL_trainerSaveCFG(Config& cfg);
 void UTIL_createVipPopupMenu(Sint32 x, Sint32 y, VipAction& action);
 void UTIL_resetVipPlayers();
 void UTIL_addVipPlayer(Uint32 playerGUID, const std::string& playerName, const std::string& description, Uint32 iconId, bool notifyLogin, Uint8 status, std::vector<Uint8>& groups);
