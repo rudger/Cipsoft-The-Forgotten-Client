@@ -725,13 +725,13 @@ void UTIL_recreateSkillsWindow(GUI_SkillsContainer* container)
 		{
 			Uint32 staminaMinutes = SDL_static_cast(Uint32, g_game.getPlayerStamina());
 			Uint8 staminaPercent;
-			if(g_clientVersion <= 840)
+			if(g_clientVersion >= 780 && g_clientVersion <= 840)
 				staminaPercent = SDL_static_cast(Uint8, (staminaMinutes * 100) / 3360);
 			else
 				staminaPercent = SDL_static_cast(Uint8, (staminaMinutes * 100) / 2520);
 			GUI_SkillBar* newBar = new GUI_SkillBar(iRect(10, PosY + 12, 135, 5), SKILLS_STAMINA_BAR_EVENTID);
 			newBar->setPercent(staminaPercent);
-			if(g_clientVersion <= 840)
+			if(g_clientVersion >= 780 && g_clientVersion <= 840)
 				newBar->setColor(192, 96, 0);
 			else
 			{
@@ -1120,12 +1120,12 @@ void UTIL_updateSkillsWindowStats()
 		{
 			Uint32 staminaMinutes = SDL_static_cast(Uint32, g_game.getPlayerStamina());
 			Uint8 percent;
-			if(g_clientVersion <= 840)
+			if(g_clientVersion >= 780 && g_clientVersion <= 840)
 				percent = SDL_static_cast(Uint8, (staminaMinutes * 100) / 3360);
 			else
 				percent = SDL_static_cast(Uint8, (staminaMinutes * 100) / 2520);
 			pBar->setPercent(percent);
-			if(g_clientVersion <= 840)
+			if(g_clientVersion >= 780 && g_clientVersion <= 840)
 				pBar->setColor(192, 96, 0);
 			else
 			{
@@ -1697,7 +1697,7 @@ void GUI_SkillDescription::onMouseMove(Sint32 x, Sint32 y, bool isInsideParent)
 			{
 				Uint32 staminaMinutes = SDL_static_cast(Uint32, g_game.getPlayerStamina());
 				Sint32 len;
-				if(g_clientVersion <= 840)
+				if(g_clientVersion >= 780 && g_clientVersion <= 840)
 				{
 					if(staminaMinutes == 0)
 						len = SDL_snprintf(g_buffer, sizeof(g_buffer), "You have no stamina left and receive no more experience and loot");

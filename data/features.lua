@@ -77,6 +77,11 @@ ClientFeatures = {
                 -- fluids show the wrong color.
                 GameNewFluids = true,
 
+                -- Stamina (42:00 hours) in the skills window, under Food. The server
+                -- must send it: set send_stamina = true in the server config.cfg,
+                -- otherwise the client disconnects.
+                GamePlayerStamina = true,
+
                 -- Food time in the skills window, under Speed (0:05 = 5 minutes).
                 -- The server must send it: set send_food_time = true in the
                 -- server config.cfg, otherwise the client disconnects.
