@@ -71,6 +71,12 @@ ClientFeatures = {
                 -- config.cfg, otherwise the client disconnects.
                 GamePlayerIconsU16 = true,
 
+                -- Real liquid type for fluids (mana fluid and wine are both purple),
+                -- so hotkeys can tell them apart. The server must send it: set
+                -- send_liquid_type = true in the server config.cfg, otherwise
+                -- fluids show the wrong color.
+                GameNewFluids = true,
+
                 -- Food time in the skills window, under Speed (0:05 = 5 minutes).
                 -- The server must send it: set send_food_time = true in the
                 -- server config.cfg, otherwise the client disconnects.
