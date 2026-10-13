@@ -501,6 +501,24 @@ void Chat::openPrivateChannel(const std::string& receiver)
 	}
 }
 
+Channel* Chat::openPrivateChannelInBackground(const std::string& receiver)
+{
+	//Like openPrivateChannel but keeps the current channel selected
+	Channel* channel = getPrivateChannel(receiver);
+	if(channel)
+		return channel;
+
+	for(Uint32 i = CHANNEL_ID_PRIVATE_START; i < CHANNEL_ID_PRIVATE_END; ++i)
+	{
+		if(!getChannel(i))
+		{
+			openChannel(i, receiver, true);
+			return getChannel(i);
+		}
+	}
+	return NULL;
+}
+
 void Chat::openChannel(Uint32 channelId, const std::string channelName, bool privateChannel, bool closable)
 {
 	for(std::vector<Channel>::iterator it = m_channels.begin(), end = m_channels.end(); it != end; ++it)

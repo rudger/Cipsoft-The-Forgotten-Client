@@ -95,6 +95,7 @@ class Chat
 
 		void setOwnPrivateChannel(Uint32 channelId) {m_ownPrivatechannel = channelId;}
 		void openPrivateChannel(const std::string& receiver);
+		Channel* openPrivateChannelInBackground(const std::string& receiver);
 		void openChannel(Uint32 channelId, const std::string channelName, bool privateChannel = false, bool closable = true);
 		void closeChannel(Uint32 channelId);
 		void leaveChannel(Uint32 channelId);

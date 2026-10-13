@@ -331,6 +331,9 @@ void Engine::loadCFG()
 		data = cfg.fetchKey("ShowLootMessage");
 		if(!data.empty())
 			m_showLootMessage = (data == "yes" ? true : false);
+		data = cfg.fetchKey("AutoOpenPrivateChat");
+		if(!data.empty())
+			m_autoOpenPrivateChat = (data == "yes" ? true : false);
 		data = cfg.fetchKey("CreatureInfo");
 		m_showNames = (SDL_static_cast(Uint32, SDL_strtoul(data.c_str(), NULL, 10)) > 0 ? true : false);
 		data = cfg.fetchKey("CreatureMarks");
@@ -676,6 +679,8 @@ void Engine::saveCFG()
 		cfg.insertKey("TabAttack", std::string(g_buffer, SDL_static_cast(size_t, len)));
 		len = SDL_snprintf(g_buffer, sizeof(g_buffer), "%s", (m_showLootMessage ? "yes" : "no"));
 		cfg.insertKey("ShowLootMessage", std::string(g_buffer, SDL_static_cast(size_t, len)));
+		len = SDL_snprintf(g_buffer, sizeof(g_buffer), "%s", (m_autoOpenPrivateChat ? "yes" : "no"));
+		cfg.insertKey("AutoOpenPrivateChat", std::string(g_buffer, SDL_static_cast(size_t, len)));
 		len = SDL_snprintf(g_buffer, sizeof(g_buffer), "%u", (m_showNames ? 2 : 0));
 		cfg.insertKey("CreatureInfo", std::string(g_buffer, SDL_static_cast(size_t, len)));
 		len = SDL_snprintf(g_buffer, sizeof(g_buffer), "%s", (m_showMarks ? "yes" : "no"));

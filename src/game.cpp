@@ -758,6 +758,8 @@ void Game::processTalk(const std::string& name, Uint32 statementId, Uint16 playe
 					g_map.addOnscreenText(ONSCREEN_MESSAGE_TOP, mode, name + ":\n" + text);
 
 				Channel* privateChannel = g_chat.getPrivateChannel(name);
+				if(!privateChannel && g_engine.hasAutoOpenPrivateChat())
+					privateChannel = g_chat.openPrivateChannelInBackground(name);
 				if(privateChannel)
 					g_chat.addChannelMessage(privateChannel->channelId, mode, statementId, name, playerLevel, text, time(NULL));
 				else

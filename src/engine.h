@@ -316,6 +316,8 @@ class Engine
 		SDL_INLINE bool hasTabAttack() {return m_tabAttack;}
 		SDL_INLINE void setShowLootMessage(bool showLootMessage) {m_showLootMessage = showLootMessage;}
 		SDL_INLINE bool hasShowLootMessage() {return m_showLootMessage;}
+		SDL_INLINE void setAutoOpenPrivateChat(bool autoOpenPrivateChat) {m_autoOpenPrivateChat = autoOpenPrivateChat;}
+		SDL_INLINE bool hasAutoOpenPrivateChat() {return m_autoOpenPrivateChat;}
 		SDL_INLINE bool hasShowManaBar() {return m_showManaBar;}
 		SDL_INLINE bool hasShowNames() {return m_showNames;}
 		SDL_INLINE bool hasShowMarks() {return m_showMarks;}
@@ -504,6 +506,7 @@ class Engine
 		bool m_showManaBar = true;
 		bool m_tabAttack = false;
 		bool m_showLootMessage = true;
+		bool m_autoOpenPrivateChat = false;
 		bool m_chatInputEnabled = true;
 		bool m_chatInputTemporary = false;
 		bool m_showNames = true;
