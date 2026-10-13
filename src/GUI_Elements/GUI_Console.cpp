@@ -314,7 +314,7 @@ void GUI_Console::update()
 			if(!cMessage.name.empty())
 			{
 				if(g_engine.hasShowLevels() && cMessage.level > 0)
-					m_sText << cMessage.timestamp << ' ' << cMessage.name << '[' << cMessage.level << "]: " << cMessage.message;
+					m_sText << cMessage.timestamp << ' ' << cMessage.name << " [" << cMessage.level << "]: " << cMessage.message;
 				else
 					m_sText << cMessage.timestamp << ' ' << cMessage.name << ": " << cMessage.message;
 			}
@@ -326,7 +326,7 @@ void GUI_Console::update()
 			if(!cMessage.name.empty())
 			{
 				if(g_engine.hasShowLevels() && cMessage.level > 0)
-					m_sText << cMessage.name << '[' << cMessage.level << "]: " << cMessage.message;
+					m_sText << cMessage.name << " [" << cMessage.level << "]: " << cMessage.message;
 				else
 					m_sText << cMessage.name << ": " << cMessage.message;
 			}
@@ -431,7 +431,7 @@ void GUI_Console::updatePartially()
 			if(!cMessage.name.empty())
 			{
 				if(g_engine.hasShowLevels() && cMessage.level > 0)
-					m_sText << cMessage.timestamp << ' ' << cMessage.name << '[' << cMessage.level << "]: " << cMessage.message;
+					m_sText << cMessage.timestamp << ' ' << cMessage.name << " [" << cMessage.level << "]: " << cMessage.message;
 				else
 					m_sText << cMessage.timestamp << ' ' << cMessage.name << ": " << cMessage.message;
 			}
@@ -443,7 +443,7 @@ void GUI_Console::updatePartially()
 			if(!cMessage.name.empty())
 			{
 				if(g_engine.hasShowLevels() && cMessage.level > 0)
-					m_sText << cMessage.name << '[' << cMessage.level << "]: " << cMessage.message;
+					m_sText << cMessage.name << " [" << cMessage.level << "]: " << cMessage.message;
 				else
 					m_sText << cMessage.name << ": " << cMessage.message;
 			}

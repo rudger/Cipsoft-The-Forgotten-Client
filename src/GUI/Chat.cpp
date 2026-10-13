@@ -152,7 +152,7 @@ void chat_Events(Uint32 event, Sint32)
 				if(!g_lastMessage.name.empty())
 				{
 					if(g_engine.hasShowLevels() && g_lastMessage.level > 0)
-						len = SDL_snprintf(g_buffer, sizeof(g_buffer), "%s %s[%u]: %s", g_lastMessage.timestamp.c_str(), g_lastMessage.name.c_str(), SDL_static_cast(Uint32, g_lastMessage.level), g_lastMessage.message.c_str());
+						len = SDL_snprintf(g_buffer, sizeof(g_buffer), "%s %s [%u]: %s", g_lastMessage.timestamp.c_str(), g_lastMessage.name.c_str(), SDL_static_cast(Uint32, g_lastMessage.level), g_lastMessage.message.c_str());
 					else
 						len = SDL_snprintf(g_buffer, sizeof(g_buffer), "%s %s: %s", g_lastMessage.timestamp.c_str(), g_lastMessage.name.c_str(), g_lastMessage.message.c_str());
 				}
@@ -164,7 +164,7 @@ void chat_Events(Uint32 event, Sint32)
 				if(!g_lastMessage.name.empty())
 				{
 					if(g_engine.hasShowLevels() && g_lastMessage.level > 0)
-						len = SDL_snprintf(g_buffer, sizeof(g_buffer), "%s[%u]: %s", g_lastMessage.name.c_str(), SDL_static_cast(Uint32, g_lastMessage.level), g_lastMessage.message.c_str());
+						len = SDL_snprintf(g_buffer, sizeof(g_buffer), "%s [%u]: %s", g_lastMessage.name.c_str(), SDL_static_cast(Uint32, g_lastMessage.level), g_lastMessage.message.c_str());
 					else
 						len = SDL_snprintf(g_buffer, sizeof(g_buffer), "%s: %s", g_lastMessage.name.c_str(), g_lastMessage.message.c_str());
 				}

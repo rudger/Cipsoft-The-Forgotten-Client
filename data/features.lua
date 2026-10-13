@@ -66,6 +66,12 @@ ClientFeatures = {
                 -- The server must send it: set send_food_time = true in the
                 -- server config.cfg, otherwise the client disconnects.
                 GameRegenerationTime = true,
+
+                -- Level of the speaker with chat/private messages: "Name [level]: text"
+                -- (Console Options -> "Show levels" must be on). The server must send it:
+                -- set send_message_level = true in the server config.cfg, otherwise the
+                -- client disconnects.
+                GameMessageLevel = true,
             }
         },
 
