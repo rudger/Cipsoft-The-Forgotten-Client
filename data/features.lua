@@ -82,6 +82,11 @@ ClientFeatures = {
                 -- otherwise the client disconnects.
                 GamePlayerStamina = true,
 
+                -- Outfit window with a list of outfits and names (old and new 7.92
+                -- outfits). The server must send it: set send_outfit_list = true in
+                -- the server config.cfg, otherwise the client disconnects.
+                GameNewOutfitProtocol = true,
+
                 -- Food time in the skills window, under Speed (0:05 = 5 minutes).
                 -- The server must send it: set send_food_time = true in the
                 -- server config.cfg, otherwise the client disconnects.
