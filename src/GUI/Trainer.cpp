@@ -94,6 +94,8 @@ namespace
 	Uint32 g_trainerNextAntiIdle = 0;
 	Uint32 g_trainerNextMove = 0;
 	Uint8 g_trainerRuneContainer = 0xFF;
+	Uint16 g_trainerSwappedItemId = 0;
+	Uint8 g_trainerSwappedHand = 0xFF;
 
 	//Food objects of the 7.72 objects.srv (Flags = {Food,...})
 	const Uint16 g_trainerFoods[] = {3577, 3578, 3579, 3580, 3581, 3582, 3583, 3584, 3585, 3586, 3587, 3588, 3589, 3590, 3591, 3592, 3593, 3594, 3595, 3596, 3597, 3598, 3599, 3600, 3601, 3602, 3606, 3607, 3723, 3724, 3725, 3726, 3727, 3728, 3729, 3730, 3731, 3732};
@@ -428,7 +430,45 @@ static bool trainerIsSpellRune(ItemUI* item)
 	return (itemId >= TRAINER_FIRST_SPELL_RUNE_ID && itemId <= TRAINER_LAST_SPELL_RUNE_ID);
 }
 
-//Rune Maker: puts a blank rune from an open backpack into an empty hand and
+//Puts the item that the Rune Maker took out of a hand back into that hand.
+//Returns true when it moved something.
+static bool trainerRestoreSwappedItem()
+{
+	if(g_trainerSwappedItemId == 0 || g_trainerSwappedHand == 0xFF)
+		return false;
+
+	if(g_game.getInventoryItem(g_trainerSwappedHand))
+		return false;
+
+	for(Uint8 cid = 0; cid < GAME_MAX_CONTAINERS; ++cid)
+	{
+		Container* container = g_game.findContainer(cid);
+		if(!container)
+			continue;
+
+		std::vector<ItemUI*>& items = container->getItems();
+		for(size_t i = 0, end = items.size(); i < end; ++i)
+		{
+			if(items[i] && items[i]->getID() == g_trainerSwappedItemId)
+			{
+				Uint8 index = SDL_static_cast(Uint8, container->getFirstIndex() + i);
+				Uint16 count = UTIL_max<Uint16>(1, items[i]->getItemCount());
+				g_game.sendMove(Position(0xFFFF, SDL_static_cast(Uint16, cid) | 0x40, index), g_trainerSwappedItemId, index, Position(0xFFFF, SDL_static_cast(Uint16, g_trainerSwappedHand) + 1, 0), count);
+				g_trainerSwappedItemId = 0;
+				g_trainerSwappedHand = 0xFF;
+				return true;
+			}
+		}
+	}
+
+	//The item is gone (or its backpack is closed): forget it
+	g_trainerSwappedItemId = 0;
+	g_trainerSwappedHand = 0xFF;
+	return false;
+}
+
+//Rune Maker: puts a blank rune from an open backpack into a hand (an item in
+//that hand goes into the backpack first) and
 //puts the created runes back into that backpack. Returns true when it moved
 //something (the server needs a moment before the next action).
 static bool trainerHandleRunes()
@@ -461,7 +501,34 @@ static bool trainerHandleRunes()
 		return true;
 	}
 
-	if(trainerHasBlankRuneInHand() || g_game.getPlayerMana() < g_trainer.runeMana)
+	if(trainerHasBlankRuneInHand())
+		return false;
+
+	//Find a blank rune in the open backpacks
+	Uint8 blankCid = 0xFF, blankIndex = 0;
+	for(Uint8 cid = 0; cid < GAME_MAX_CONTAINERS && blankCid == 0xFF; ++cid)
+	{
+		Container* container = g_game.findContainer(cid);
+		if(!container)
+			continue;
+
+		std::vector<ItemUI*>& items = container->getItems();
+		for(size_t i = 0, end = items.size(); i < end; ++i)
+		{
+			if(items[i] && items[i]->getID() == TRAINER_BLANK_RUNE_ID)
+			{
+				blankCid = cid;
+				blankIndex = SDL_static_cast(Uint8, container->getFirstIndex() + i);
+				break;
+			}
+		}
+	}
+
+	//No blank runes left: put the item that was taken out of the hand back
+	if(blankCid == 0xFF)
+		return trainerRestoreSwappedItem();
+
+	if(g_game.getPlayerMana() < g_trainer.runeMana)
 		return false;
 
 	Uint8 freeHand = 0xFF;
@@ -473,28 +540,26 @@ static bool trainerHandleRunes()
 			break;
 		}
 	}
+
+	//Both hands are in use: put the item of one hand (weapon, shield, ...)
+	//into the backpack of the blank rune, the blank rune goes there next
 	if(freeHand == 0xFF)
-		return false;
-
-	for(Uint8 cid = 0; cid < GAME_MAX_CONTAINERS; ++cid)
 	{
-		Container* container = g_game.findContainer(cid);
-		if(!container)
-			continue;
+		Uint8 hand = SLOT_RIGHT;
+		ItemUI* item = g_game.getInventoryItem(hand);
+		if(!item)
+			return false;
 
-		std::vector<ItemUI*>& items = container->getItems();
-		for(size_t i = 0, end = items.size(); i < end; ++i)
-		{
-			if(items[i] && items[i]->getID() == TRAINER_BLANK_RUNE_ID)
-			{
-				Uint8 index = SDL_static_cast(Uint8, container->getFirstIndex() + i);
-				g_game.sendMove(Position(0xFFFF, SDL_static_cast(Uint16, cid) | 0x40, index), TRAINER_BLANK_RUNE_ID, index, Position(0xFFFF, SDL_static_cast(Uint16, freeHand) + 1, 0), 1);
-				g_trainerRuneContainer = cid;
-				return true;
-			}
-		}
+		Uint16 count = UTIL_max<Uint16>(1, item->getItemCount());
+		g_game.sendMove(Position(0xFFFF, SDL_static_cast(Uint16, hand) + 1, 0), item->getID(), 0, Position(0xFFFF, SDL_static_cast(Uint16, blankCid) | 0x40, 0xFF), count);
+		g_trainerSwappedItemId = item->getID();
+		g_trainerSwappedHand = hand;
+		return true;
 	}
-	return false;
+
+	g_game.sendMove(Position(0xFFFF, SDL_static_cast(Uint16, blankCid) | 0x40, blankIndex), TRAINER_BLANK_RUNE_ID, blankIndex, Position(0xFFFF, SDL_static_cast(Uint16, freeHand) + 1, 0), 1);
+	g_trainerRuneContainer = blankCid;
+	return true;
 }
 
 static Uint16 trainerFindFood()
@@ -565,6 +630,13 @@ void UTIL_trainerThink()
 			if(foodId != 0)
 				g_game.sendUseItem(Position(0xFFFF, 0, 0), foodId, 0, 0);
 		}
+	}
+
+	//Rune Maker switched off: give the hand its item back
+	if(!g_trainer.runeMaker && g_frameTime >= g_trainerNextMove && trainerRestoreSwappedItem())
+	{
+		g_trainerNextMove = g_frameTime + TRAINER_MOVE_DELAY;
+		return;
 	}
 
 	if(g_trainer.runeMaker && g_frameTime >= g_trainerNextMove && trainerHandleRunes())
