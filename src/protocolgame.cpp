@@ -160,6 +160,7 @@ void ProtocolGame::parseMessage(InputMessage& msg)
 		case RecvNPCOpenTradeOpcode: parseNpcOpenTrade(msg); break;
 		case RecvNPCPlayerGoodsOpcode: parseNpcPlayerGoods(msg); break;
 		case RecvNPCCloseTradeOpcode: parseNpcCloseTrade(msg); break;
+		case RecvItemDurationTypesOpcode: if(requireRecvFeature(GAME_FEATURE_ITEM_DURATION, "GameItemDuration", header, msg)) parseItemDurationTypes(msg); break;
 		case RecvTradeOwnOpcode: parseTradeOwn(msg); break;
 		case RecvTradeCounterOpcode: parseTradeCounter(msg); break;
 		case RecvTradeCloseOpcode: parseTradeClose(msg); break;
@@ -1375,6 +1376,24 @@ void ProtocolGame::parseNpcOpenTrade(InputMessage& msg)
 		tradeItem.itemSellPrice = msg.getU32();
 	}
 	g_game.processNPCTradeOpen(npcName, currencyId, npcItems);
+}
+
+// Not part of the 7.72 protocol (GameItemDuration): the item types that are
+// followed by their duration in seconds wherever an item is sent.
+void ProtocolGame::parseItemDurationTypes(InputMessage& msg)
+{
+	std::vector<Uint16> types;
+	Uint16 count = msg.getU16();
+	for(Uint16 i = 0; i < count; ++i)
+		types.push_back(msg.getU16());
+	g_game.setItemDurationTypes(types);
+}
+
+Uint16 ProtocolGame::getItemDuration(InputMessage& msg, Uint16 thingId)
+{
+	if(g_game.hasGameFeature(GAME_FEATURE_ITEM_DURATION) && g_game.hasItemDuration(thingId))
+		return msg.getU16();
+	return 0;
 }
 
 void ProtocolGame::parseNpcPlayerGoods(InputMessage& msg)
@@ -9058,6 +9077,8 @@ Item* ProtocolGame::getItem(InputMessage& msg, Uint16 thingId, const Position& p
 		}
 	}
 
+	getItemDuration(msg, thingId);
+
 	if(g_game.hasGameFeature(GAME_FEATURE_QUICK_LOOT) && ttype->hasFlag(ThingAttribute_Container))
 	{
 		bool assignedToQuickLoot = msg.getBool();
@@ -9105,6 +9126,8 @@ ItemUI* ProtocolGame::getItemUI(InputMessage& msg, Uint16 thingId)
 	else if(type->hasFlag(ThingAttribute_Splash) || type->hasFlag(ThingAttribute_FluidContainer))
 		count = SDL_static_cast(Uint16, msg.getU8());
 
+	Uint16 duration = getItemDuration(msg, thingId);
+
 	if(g_game.hasGameFeature(GAME_FEATURE_QUICK_LOOT) && type->hasFlag(ThingAttribute_Container))
 	{
 		bool assignedToQuickLoot = msg.getBool();
@@ -9129,7 +9152,10 @@ ItemUI* ProtocolGame::getItemUI(InputMessage& msg, Uint16 thingId)
 				phase = SDL_static_cast(Sint32, startPhase);
 		}
 	}
-	return ItemUI::createItemUI(type, count, phase);
+	ItemUI* item = ItemUI::createItemUI(type, count, phase);
+	if(item && g_game.hasGameFeature(GAME_FEATURE_ITEM_DURATION) && g_game.hasItemDuration(thingId))
+		item->setDuration(duration);
+	return item;
 }
 
 void ProtocolGame::setMapDescription(InputMessage& msg, Sint32 x, Sint32 y, Uint8 z, Sint32 width, Sint32 height)

@@ -23,6 +23,8 @@
 #define __FILE_GAME_h_
 
 #include "position.h"
+#include <unordered_set>
+#include <vector>
 
 enum Stats_Cached_State : Uint16
 {
@@ -84,6 +86,9 @@ class Game
 		bool enableGameFeatureByName(const std::string& featureName);
 		bool disableGameFeatureByName(const std::string& featureName);
 		bool hasGameFeatureByName(const std::string& featureName) const;
+
+		void setItemDurationTypes(const std::vector<Uint16>& types) {m_itemDurationTypes = std::unordered_set<Uint16>(types.begin(), types.end());}
+		bool hasItemDuration(Uint16 itemId) const {return m_itemDurationTypes.count(itemId) != 0;}
 		bool loadFeatureProfile(const std::string& profileName);
 
 		void processGMActions(std::vector<Uint8> privileges);
@@ -361,6 +366,8 @@ class Game
 
 		Sint32 m_playerTournamentFactor = 0;
 		Sint32 m_playerCharmPoints = 0;
+
+		std::unordered_set<Uint16> m_itemDurationTypes;
 
 		Position m_autoWalkDestination;
 		Position m_limitWalkDestination;

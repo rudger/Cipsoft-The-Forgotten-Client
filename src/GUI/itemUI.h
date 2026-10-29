@@ -42,6 +42,7 @@ class ItemUI
 		static ItemUI* createItemUI(Uint16 itemId, Uint16 count, Sint32 phase = AnimationPhase_Automatic);
 		static ItemUI* createItemUI(ThingType* type, Uint16 count, Sint32 phase = AnimationPhase_Automatic);
 		void setSubtype(Uint16 count, bool showCount);
+		void setDuration(Uint16 duration);
 
 		SDL_INLINE Uint16 getItemCount() {return m_count;}
 		SDL_INLINE Uint8 getItemSubtype() {return m_subtype;}
@@ -69,6 +70,11 @@ class ItemUI
 		Uint8 m_yPattern = 0;
 		Uint8 m_zPattern = 0;
 		bool m_displayCount = false;
+
+		Uint32 m_durationTime = 0;
+		Uint16 m_duration = 0;
+		bool m_hasDuration = false;
+		bool m_durationRunning = false;
 };
 
 #endif /* __FILE_ITEM_h_ */

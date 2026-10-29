@@ -66,6 +66,12 @@ ClientFeatures = {
                 -- NPCs are recognised by their creature id (0x80000000 and up).
                 GameBlueNPCs = true,
 
+                -- Time left of items with a duration (rings, torches, ...) in the
+                -- inventory and backpacks, e.g. "18m". The server must send it: set
+                -- send_item_duration = true in the server config.cfg, otherwise the
+                -- client disconnects.
+                GameItemDuration = true,
+
                 -- Pigeon icon in the inventory while standing in a protection zone.
                 -- The server must send it: set send_pz_icon = true in the server
                 -- config.cfg, otherwise the client disconnects.
