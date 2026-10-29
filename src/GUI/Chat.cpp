@@ -1722,7 +1722,10 @@ void Chat::render(iRect& rect)
 	iRect chatToggleRect = chatToggleButtonRect(rect);
 	iRect tRect = iRect(rect.x1 + 23, rect.y1 + rect.y2 - 20, UTIL_max<Sint32>(20, chatToggleRect.x1 - rect.x1 - 27), 16);
 	m_textbox->setRect(tRect);
-	m_textbox->render();
+	// With chat off (e.g. WASD walking) there is no text field, only the
+	// console background, like the later Tibia clients.
+	if(g_engine.isChatInputEnabled())
+		m_textbox->render();
 
 	const std::string chatToggleText = (g_engine.isChatInputEnabled() ? (g_engine.isChatInputTemporary() ? "Chat On*" : "Chat On") : "Chat Off");
 	bool chatTogglePressed = (m_chatToggleStatus == 1);
