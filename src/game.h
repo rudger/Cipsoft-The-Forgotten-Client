@@ -192,6 +192,7 @@ class Game
 		void stopActions();
 		void startAutoWalk(const Position& toPosition);
 		void stopAutoWalk();
+		void noteAutoWalkAction();
 		void checkServerMovement(Direction dir);
 		void checkLocalCreatureMovement();
 		void checkMovement(Direction dir);
@@ -356,6 +357,7 @@ class Game
 		Uint32 m_playerMaxMana = 0;
 		Uint32 m_icons = 0;
 		Uint32 m_cancelWalkCounter = 0;
+		Uint32 m_autoWalkActionTime = 0;
 
 		Sint32 m_playerTournamentFactor = 0;
 		Sint32 m_playerCharmPoints = 0;

@@ -597,10 +597,22 @@ void Game::processTextMessage(MessageMode mode, const std::string& text, Uint32 
 
 void Game::processWalkCancel(Direction direction)
 {
+	// An action sent during auto walk that needs its own walk (e.g. using an
+	// item that is too far away) replaces the auto walk on the server, so the
+	// auto walk is not started again.
+	bool actionCancel = (m_autoWalkActionTime != 0 && SDL_GetTicks() - m_autoWalkActionTime < 1000);
+	if(actionCancel)
+	{
+		m_autoWalkActionTime = 0;
+		m_autoWalkDestination.x = 0xFFFF;
+		m_limitWalkDestination.x = 0xFFFF;
+		m_autoWalkDirections.clear();
+	}
+
 	Creature* player = g_map.getLocalCreature();
 	if(player)
 	{
-		if(direction != DIRECTION_INVALID && player->getWalkDirection() == direction)
+		if(!actionCancel && direction != DIRECTION_INVALID && player->getWalkDirection() == direction)
 		{
 			if(player->isPreWalking())
 			{
@@ -1051,6 +1063,7 @@ void Game::sendAttackModes()
 
 void Game::sendAttack(Creature* creature)
 {
+	noteAutoWalkAction();
 	Uint32 sequence = m_sequence;
 	m_attackId = (creature ? creature->getId() : 0);
 	if(g_clientVersion >= 963)
@@ -1074,6 +1087,7 @@ void Game::sendAttack(Creature* creature)
 
 void Game::sendFollow(Creature* creature)
 {
+	noteAutoWalkAction();
 	Uint32 sequence = m_sequence;
 	m_followId = (creature ? creature->getId() : 0);
 	if(g_clientVersion >= 963)
@@ -1223,6 +1237,7 @@ void Game::sendEquipItem(Uint16 itemid, Uint16 count)
 
 void Game::sendMove(const Position& fromPos, Uint16 itemid, Uint8 stackpos, const Position& toPos, Uint16 count)
 {
+	noteAutoWalkAction();
 	if(g_engine.isIngame())
 	{
 		ProtocolGame* game = GET_SAFE_PROTOCOLGAME;
@@ -1253,6 +1268,7 @@ void Game::sendLookInBattle(Uint32 creatureId)
 
 void Game::sendUseItem(const Position& position, Uint16 itemId, Uint8 stackpos, Uint8 index)
 {
+	noteAutoWalkAction();
 	if(g_engine.isIngame())
 	{
 		ProtocolGame* game = GET_SAFE_PROTOCOLGAME;
@@ -1263,6 +1279,7 @@ void Game::sendUseItem(const Position& position, Uint16 itemId, Uint8 stackpos, 
 
 void Game::sendUseItemEx(const Position& fromPos, Uint16 itemId, Uint8 fromStackPos, const Position& toPos, Uint16 toItemId, Uint8 toStackPos)
 {
+	noteAutoWalkAction();
 	if(g_engine.isIngame())
 	{
 		ProtocolGame* game = GET_SAFE_PROTOCOLGAME;
@@ -1273,6 +1290,7 @@ void Game::sendUseItemEx(const Position& fromPos, Uint16 itemId, Uint8 fromStack
 
 void Game::sendUseOnCreature(const Position& position, Uint16 itemId, Uint8 stackpos, Uint32 creatureId)
 {
+	noteAutoWalkAction();
 	if(g_engine.isIngame())
 	{
 		ProtocolGame* game = GET_SAFE_PROTOCOLGAME;
@@ -1283,6 +1301,7 @@ void Game::sendUseOnCreature(const Position& position, Uint16 itemId, Uint8 stac
 
 void Game::sendRotateItem(const Position& position, Uint16 itemId, Uint8 stackpos)
 {
+	noteAutoWalkAction();
 	if(g_engine.isIngame())
 	{
 		ProtocolGame* game = GET_SAFE_PROTOCOLGAME;
@@ -1383,6 +1402,7 @@ void Game::sendHouseWindow(Uint32 windowId, Uint8 doorId, const std::string& tex
 
 void Game::sendRequestTrade(const Position& position, Uint16 itemId, Uint8 stackpos, Uint32 creatureId)
 {
+	noteAutoWalkAction();
 	if(g_engine.isIngame())
 	{
 		ProtocolGame* game = GET_SAFE_PROTOCOLGAME;
@@ -1575,6 +1595,12 @@ void Game::startAutoWalk(const Position& toPosition)
 	m_limitWalkDestination = pos.translatedToDirections(m_autoWalkDirections);
 	sendAutoWalk(m_autoWalkDirections);
 	checkLocalCreatureMovement();
+}
+
+void Game::noteAutoWalkAction()
+{
+	if(m_autoWalkDestination.x != 0xFFFF)
+		m_autoWalkActionTime = SDL_GetTicks();
 }
 
 void Game::stopAutoWalk()
