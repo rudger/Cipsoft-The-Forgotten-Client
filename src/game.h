@@ -23,6 +23,7 @@
 #define __FILE_GAME_h_
 
 #include "position.h"
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -89,6 +90,10 @@ class Game
 
 		void setItemDurationTypes(const std::vector<Uint16>& types) {m_itemDurationTypes = std::unordered_set<Uint16>(types.begin(), types.end());}
 		bool hasItemDuration(Uint16 itemId) const {return m_itemDurationTypes.count(itemId) != 0;}
+
+		void clearItemValues() {m_itemValues.clear();}
+		void setItemValue(Uint16 itemId, Uint32 value) {m_itemValues[itemId] = value;}
+		Uint32 getItemValue(Uint16 itemId) const {auto it = m_itemValues.find(itemId); return (it != m_itemValues.end() ? it->second : 0);}
 		bool loadFeatureProfile(const std::string& profileName);
 
 		void processGMActions(std::vector<Uint8> privileges);
@@ -368,6 +373,7 @@ class Game
 		Sint32 m_playerCharmPoints = 0;
 
 		std::unordered_set<Uint16> m_itemDurationTypes;
+		std::unordered_map<Uint16, Uint32> m_itemValues;
 
 		Position m_autoWalkDestination;
 		Position m_limitWalkDestination;

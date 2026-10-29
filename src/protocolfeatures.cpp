@@ -159,6 +159,7 @@ namespace
 		{"GameSkillsSpeed", GAME_FEATURE_SKILLS_SPEED},
 		{"GameBlueNPCs", GAME_FEATURE_BLUE_NPCS},
 		{"GameItemDuration", GAME_FEATURE_ITEM_DURATION},
+		{"GameItemValues", GAME_FEATURE_ITEM_VALUES},
 		{"GameQuestTracker", GAME_FEATURE_QUEST_TRACKER},
 		{"GameTime", GAME_FEATURE_GAMETIME},
 		{"GameCompedium", GAME_FEATURE_COMPEDIUM},

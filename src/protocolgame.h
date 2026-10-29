@@ -229,6 +229,7 @@ enum GameOpcodes : Uint8
 	RecvNPCPlayerGoodsOpcode = 0x7B,
 	RecvNPCCloseTradeOpcode = 0x7C,
 	RecvItemDurationTypesOpcode = 0x89,
+	RecvItemValuesOpcode = 0x8A,
 	RecvTradeOwnOpcode = 0x7D,
 	RecvTradeCounterOpcode = 0x7E,
 	RecvTradeCloseOpcode = 0x7F,
@@ -998,6 +999,7 @@ class ProtocolGame : public Protocol
 		void parseNpcOpenTrade(InputMessage& msg);
 		void parseNpcPlayerGoods(InputMessage& msg);
 		void parseItemDurationTypes(InputMessage& msg);
+		void parseItemValues(InputMessage& msg);
 		Uint16 getItemDuration(InputMessage& msg, Uint16 thingId);
 		void parseNpcCloseTrade(InputMessage& msg);
 

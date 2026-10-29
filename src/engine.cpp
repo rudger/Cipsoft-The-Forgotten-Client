@@ -344,6 +344,9 @@ void Engine::loadCFG()
 		data = cfg.fetchKey("ShowFPS");
 		if(!data.empty())
 			m_showFPS = (data == "yes" ? true : false);
+		data = cfg.fetchKey("ShowLootFrames");
+		if(!data.empty())
+			m_showLootFrames = (data == "yes" ? true : false);
 		data = cfg.fetchKey("CreatureInfo");
 		m_showNames = (SDL_static_cast(Uint32, SDL_strtoul(data.c_str(), NULL, 10)) > 0 ? true : false);
 		data = cfg.fetchKey("CreatureMarks");
@@ -698,6 +701,8 @@ void Engine::saveCFG()
 		cfg.insertKey("ShowPing", std::string(g_buffer, SDL_static_cast(size_t, len)));
 		len = SDL_snprintf(g_buffer, sizeof(g_buffer), "%s", (m_showFPS ? "yes" : "no"));
 		cfg.insertKey("ShowFPS", std::string(g_buffer, SDL_static_cast(size_t, len)));
+		len = SDL_snprintf(g_buffer, sizeof(g_buffer), "%s", (m_showLootFrames ? "yes" : "no"));
+		cfg.insertKey("ShowLootFrames", std::string(g_buffer, SDL_static_cast(size_t, len)));
 		len = SDL_snprintf(g_buffer, sizeof(g_buffer), "%u", (m_showNames ? 2 : 0));
 		cfg.insertKey("CreatureInfo", std::string(g_buffer, SDL_static_cast(size_t, len)));
 		len = SDL_snprintf(g_buffer, sizeof(g_buffer), "%s", (m_showMarks ? "yes" : "no"));

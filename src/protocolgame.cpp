@@ -160,6 +160,7 @@ void ProtocolGame::parseMessage(InputMessage& msg)
 		case RecvNPCOpenTradeOpcode: parseNpcOpenTrade(msg); break;
 		case RecvNPCPlayerGoodsOpcode: parseNpcPlayerGoods(msg); break;
 		case RecvNPCCloseTradeOpcode: parseNpcCloseTrade(msg); break;
+		case RecvItemValuesOpcode: if(requireRecvFeature(GAME_FEATURE_ITEM_VALUES, "GameItemValues", header, msg)) parseItemValues(msg); break;
 		case RecvItemDurationTypesOpcode: if(requireRecvFeature(GAME_FEATURE_ITEM_DURATION, "GameItemDuration", header, msg)) parseItemDurationTypes(msg); break;
 		case RecvTradeOwnOpcode: parseTradeOwn(msg); break;
 		case RecvTradeCounterOpcode: parseTradeCounter(msg); break;
@@ -1387,6 +1388,22 @@ void ProtocolGame::parseItemDurationTypes(InputMessage& msg)
 	for(Uint16 i = 0; i < count; ++i)
 		types.push_back(msg.getU16());
 	g_game.setItemDurationTypes(types);
+}
+
+// Not part of the 7.72 protocol (GameItemValues): item values for loot frames.
+void ProtocolGame::parseItemValues(InputMessage& msg)
+{
+	bool first = msg.getBool();
+	if(first)
+		g_game.clearItemValues();
+
+	Uint16 count = msg.getU16();
+	for(Uint16 i = 0; i < count; ++i)
+	{
+		Uint16 itemId = msg.getU16();
+		Uint32 value = msg.getU32();
+		g_game.setItemValue(itemId, value);
+	}
 }
 
 Uint16 ProtocolGame::getItemDuration(InputMessage& msg, Uint16 thingId)

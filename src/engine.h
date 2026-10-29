@@ -324,6 +324,8 @@ class Engine
 		SDL_INLINE bool hasShowPing() {return m_showPing;}
 		SDL_INLINE void setShowFPS(bool showFPS) {m_showFPS = showFPS;}
 		SDL_INLINE bool hasShowFPS() {return m_showFPS;}
+		SDL_INLINE void setShowLootFrames(bool showLootFrames) {m_showLootFrames = showLootFrames;}
+		SDL_INLINE bool hasShowLootFrames() {return m_showLootFrames;}
 		SDL_INLINE bool hasShowManaBar() {return m_showManaBar;}
 		SDL_INLINE bool hasShowNames() {return m_showNames;}
 		SDL_INLINE bool hasShowMarks() {return m_showMarks;}
@@ -516,6 +518,7 @@ class Engine
 		bool m_moveStacksDirectly = false;
 		bool m_showPing = false;
 		bool m_showFPS = false;
+		bool m_showLootFrames = true;
 		bool m_chatInputEnabled = true;
 		bool m_chatInputTemporary = false;
 		bool m_showNames = true;

@@ -526,6 +526,19 @@ void GUI_ContainerItem::render()
 	ItemUI* item = container->getItem(m_index);
 	if(item)
 	{
+		// Loot frame by item value (GameItemValues), like later clients.
+		Uint32 value = (g_game.hasGameFeature(GAME_FEATURE_ITEM_VALUES) && g_engine.hasShowLootFrames() ? g_game.getItemValue(item->getID()) : 0);
+		if(value > 0)
+		{
+			Uint8 red, green, blue;
+			if(value >= 1000000) {red = 255; green = 215; blue = 0;}
+			else if(value >= 100000) {red = 186; green = 85; blue = 211;}
+			else if(value >= 10000) {red = 65; green = 105; blue = 225;}
+			else if(value >= 1000) {red = 50; green = 205; blue = 50;}
+			else {red = 160; green = 160; blue = 160;}
+			renderer->fillRectangle(m_tRect.x1, m_tRect.y1, m_tRect.x2, m_tRect.y2, red, green, blue, 48);
+			renderer->drawRectangle(m_tRect.x1, m_tRect.y1, m_tRect.x2, m_tRect.y2, 1, red, green, blue, 255);
+		}
 		item->render(m_tRect.x1, m_tRect.y1, m_tRect.y2);
 		if(m_selected)
 		{

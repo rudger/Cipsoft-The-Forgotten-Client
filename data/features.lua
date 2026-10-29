@@ -72,6 +72,13 @@ ClientFeatures = {
                 -- client disconnects.
                 GameItemDuration = true,
 
+                -- Loot frames around items in containers by their value (the most
+                -- an NPC pays): grey, green (1k), blue (10k), purple (100k), yellow
+                -- (1kk). "Show loot frames" in General Options turns them on/off.
+                -- The server must send it: set send_item_values = true in the
+                -- server config.cfg, otherwise the client disconnects.
+                GameItemValues = true,
+
                 -- Pigeon icon in the inventory while standing in a protection zone.
                 -- The server must send it: set send_pz_icon = true in the server
                 -- config.cfg, otherwise the client disconnects.
