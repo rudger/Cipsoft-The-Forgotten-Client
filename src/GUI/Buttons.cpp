@@ -82,6 +82,9 @@
 #define BUTTONS_TRAINER_DESCRIPTION1 "Open trainer window"
 #define BUTTONS_TRAINER_DESCRIPTION2 "Close trainer window"
 #define BUTTONS_TRAINER_EVENTID 1018
+#define BUTTONS_AUTOLOOT_TITLE "Auto Loot"
+#define BUTTONS_AUTOLOOT_DESCRIPTION "Open auto loot window"
+#define BUTTONS_AUTOLOOT_EVENTID 1019
 
 extern Engine g_engine;
 extern Game g_game;
@@ -126,6 +129,7 @@ void buttons_Events(Uint32 event, Sint32)
 		case BUTTONS_FRIENDS_EVENTID: break;
 		case BUTTONS_PARTY_EVENTID: UTIL_togglePartyWindow(); break;
 		case BUTTONS_TRAINER_EVENTID: UTIL_toggleTrainerWindow(); break;
+		case BUTTONS_AUTOLOOT_EVENTID: UTIL_toggleAutoLootWindow(); break;
 		default: break;
 	}
 }
@@ -622,6 +626,13 @@ void UTIL_createButtonsPanel()
 		newRadioButton->setButtonEventCallback(&buttons_Events, BUTTONS_TRAINER_EVENTID);
 		newRadioButton->startEvents();
 		pPanel->addChild(newRadioButton);
+		if(g_game.hasGameFeature(GAME_FEATURE_AUTO_LOOT))
+		{
+			newButton = new GUI_Button(iRect(45, 25, GUI_UI_BUTTON_75PX_GRAY_UP_W, GUI_UI_BUTTON_75PX_GRAY_UP_H), BUTTONS_AUTOLOOT_TITLE, 0, BUTTONS_AUTOLOOT_DESCRIPTION);
+			newButton->setButtonEventCallback(&buttons_Events, BUTTONS_AUTOLOOT_EVENTID);
+			newButton->startEvents();
+			pPanel->addChild(newButton);
+		}
 	}
 	
 	if(newWindow)

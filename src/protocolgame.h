@@ -64,6 +64,10 @@ enum GameOpcodes : Uint8
 	GameNPCPurchaseOpcode = 0x7A,
 	GameNPCSellOpcode = 0x7B,
 	GameNPCCloseOpcode = 0x7C,
+	GameAutoLootRequestOpcode = 0xF0,
+	GameAutoLootAddOpcode = 0xF1,
+	GameAutoLootRemoveOpcode = 0xF2,
+	GameAutoLootSettingsOpcode = 0xF3,
 	GameRequestTradeOpcode = 0x7D,
 	GameLookInTradeOpcode = 0x7E,
 	GameAcceptTradeOpcode = 0x7F,
@@ -230,6 +234,7 @@ enum GameOpcodes : Uint8
 	RecvNPCCloseTradeOpcode = 0x7C,
 	RecvItemDurationTypesOpcode = 0x89,
 	RecvItemValuesOpcode = 0x8A,
+	RecvAutoLootListOpcode = 0x88,
 	RecvTradeOwnOpcode = 0x7D,
 	RecvTradeCounterOpcode = 0x7E,
 	RecvTradeCloseOpcode = 0x7F,
@@ -750,6 +755,10 @@ class ProtocolGame : public Protocol
 		void sendNPCPurchase(Uint16 itemid, Uint8 subtype, Uint16 amount, bool ignoreCapacity, bool buyWithBackpack);
 		void sendNPCSell(Uint16 itemid, Uint8 subtype, Uint16 amount, bool ignoreEquipped);
 		void sendNPCClose();
+		void sendAutoLootRequest();
+		void sendAutoLootAdd(const std::string& itemName, const std::string& backpackName);
+		void sendAutoLootRemove(Uint8 index);
+		void sendAutoLootSettings(bool on, bool fallback);
 
 		//Trade System
 		void sendRequestTrade(const Position& position, Uint16 itemId, Uint8 stackpos, Uint32 creatureId);
@@ -1000,6 +1009,7 @@ class ProtocolGame : public Protocol
 		void parseNpcPlayerGoods(InputMessage& msg);
 		void parseItemDurationTypes(InputMessage& msg);
 		void parseItemValues(InputMessage& msg);
+		void parseAutoLootList(InputMessage& msg);
 		Uint16 getItemDuration(InputMessage& msg, Uint16 thingId);
 		void parseNpcCloseTrade(InputMessage& msg);
 

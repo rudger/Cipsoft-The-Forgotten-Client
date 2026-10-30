@@ -79,6 +79,12 @@ ClientFeatures = {
                 -- server config.cfg, otherwise the client disconnects.
                 GameItemValues = true,
 
+                -- "Auto Loot" button and window: a list of "item name" -> "backpack
+                -- name". With "Auto Loot on", opening a corpse moves those items into
+                -- the backpacks. The server must support it: set auto_loot = true in
+                -- the server config.cfg.
+                GameAutoLoot = true,
+
                 -- Pigeon icon in the inventory while standing in a protection zone.
                 -- The server must send it: set send_pz_icon = true in the server
                 -- config.cfg, otherwise the client disconnects.

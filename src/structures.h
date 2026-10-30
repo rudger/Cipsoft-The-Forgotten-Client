@@ -415,6 +415,14 @@ struct RequestItems
 };
 
 using NPCTradeGoods = std::map<Uint16, Uint16>;
+struct AutoLootEntry
+{
+	std::string itemName;
+	std::string backpackName;
+	Uint16 itemId = 0;
+	Uint16 backpackId = 0;
+};
+
 struct NPCTradeItems
 {
 	NPCTradeItems() = default;

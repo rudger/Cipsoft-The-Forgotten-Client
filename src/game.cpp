@@ -1481,6 +1481,54 @@ void Game::sendNPCClose()
 	}
 }
 
+void Game::sendAutoLootRequest()
+{
+	if(g_engine.isIngame())
+	{
+		ProtocolGame* game = GET_SAFE_PROTOCOLGAME;
+		if(game)
+			game->sendAutoLootRequest();
+	}
+}
+
+void Game::sendAutoLootAdd(const std::string& itemName, const std::string& backpackName)
+{
+	if(g_engine.isIngame())
+	{
+		ProtocolGame* game = GET_SAFE_PROTOCOLGAME;
+		if(game)
+			game->sendAutoLootAdd(itemName, backpackName);
+	}
+}
+
+void Game::sendAutoLootRemove(Uint8 index)
+{
+	if(g_engine.isIngame())
+	{
+		ProtocolGame* game = GET_SAFE_PROTOCOLGAME;
+		if(game)
+			game->sendAutoLootRemove(index);
+	}
+}
+
+void Game::sendAutoLootSettings(bool on, bool fallback)
+{
+	if(g_engine.isIngame())
+	{
+		ProtocolGame* game = GET_SAFE_PROTOCOLGAME;
+		if(game)
+			game->sendAutoLootSettings(on, fallback);
+	}
+}
+
+void Game::processAutoLootList(bool on, bool fallback, std::vector<AutoLootEntry>& entries)
+{
+	m_autoLootOn = on;
+	m_autoLootFallback = fallback;
+	m_autoLootEntries = std::move(entries);
+	UTIL_refreshAutoLootWindow();
+}
+
 void Game::sendAddVip(const std::string& name)
 {
 	if(g_engine.isIngame())

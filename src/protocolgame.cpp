@@ -160,6 +160,7 @@ void ProtocolGame::parseMessage(InputMessage& msg)
 		case RecvNPCOpenTradeOpcode: parseNpcOpenTrade(msg); break;
 		case RecvNPCPlayerGoodsOpcode: parseNpcPlayerGoods(msg); break;
 		case RecvNPCCloseTradeOpcode: parseNpcCloseTrade(msg); break;
+		case RecvAutoLootListOpcode: if(requireRecvFeature(GAME_FEATURE_AUTO_LOOT, "GameAutoLoot", header, msg)) parseAutoLootList(msg); break;
 		case RecvItemValuesOpcode: if(requireRecvFeature(GAME_FEATURE_ITEM_VALUES, "GameItemValues", header, msg)) parseItemValues(msg); break;
 		case RecvItemDurationTypesOpcode: if(requireRecvFeature(GAME_FEATURE_ITEM_DURATION, "GameItemDuration", header, msg)) parseItemDurationTypes(msg); break;
 		case RecvTradeOwnOpcode: parseTradeOwn(msg); break;
@@ -1388,6 +1389,24 @@ void ProtocolGame::parseItemDurationTypes(InputMessage& msg)
 	for(Uint16 i = 0; i < count; ++i)
 		types.push_back(msg.getU16());
 	g_game.setItemDurationTypes(types);
+}
+
+// Not part of the 7.72 protocol (GameAutoLoot): the auto loot settings and list.
+void ProtocolGame::parseAutoLootList(InputMessage& msg)
+{
+	Uint8 flags = msg.getU8();
+	std::vector<AutoLootEntry> entries;
+	Uint8 count = msg.getU8();
+	for(Uint8 i = 0; i < count; ++i)
+	{
+		AutoLootEntry entry;
+		entry.itemId = msg.getU16();
+		entry.itemName = msg.getString();
+		entry.backpackId = msg.getU16();
+		entry.backpackName = msg.getString();
+		entries.push_back(std::move(entry));
+	}
+	g_game.processAutoLootList((flags & 1) != 0, (flags & 2) != 0, entries);
 }
 
 // Not part of the 7.72 protocol (GameItemValues): item values for loot frames.
@@ -6617,6 +6636,38 @@ void ProtocolGame::sendNPCClose()
 {
 	OutputMessage msg(getHeaderPos());
 	msg.addU8(GameNPCCloseOpcode);
+	onSend(msg);
+}
+
+void ProtocolGame::sendAutoLootRequest()
+{
+	OutputMessage msg(getHeaderPos());
+	msg.addU8(GameAutoLootRequestOpcode);
+	onSend(msg);
+}
+
+void ProtocolGame::sendAutoLootAdd(const std::string& itemName, const std::string& backpackName)
+{
+	OutputMessage msg(getHeaderPos());
+	msg.addU8(GameAutoLootAddOpcode);
+	msg.addString(itemName);
+	msg.addString(backpackName);
+	onSend(msg);
+}
+
+void ProtocolGame::sendAutoLootRemove(Uint8 index)
+{
+	OutputMessage msg(getHeaderPos());
+	msg.addU8(GameAutoLootRemoveOpcode);
+	msg.addU8(index);
+	onSend(msg);
+}
+
+void ProtocolGame::sendAutoLootSettings(bool on, bool fallback)
+{
+	OutputMessage msg(getHeaderPos());
+	msg.addU8(GameAutoLootSettingsOpcode);
+	msg.addU8((on ? 1 : 0) | (fallback ? 2 : 0));
 	onSend(msg);
 }
 

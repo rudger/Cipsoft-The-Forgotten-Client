@@ -136,6 +136,8 @@ void UTIL_refreshPartyWindow();
 void UTIL_toggleVipWindow();
 class Config;
 void UTIL_toggleTrainerWindow();
+void UTIL_toggleAutoLootWindow();
+void UTIL_refreshAutoLootWindow();
 void UTIL_trainerSettings();
 void UTIL_trainerThink();
 void UTIL_trainerLoadCFG(Config& cfg);

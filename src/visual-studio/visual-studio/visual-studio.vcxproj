@@ -71,6 +71,7 @@
     <ClCompile Include="..\..\GUI\TutorialHint.cpp" />
     <ClCompile Include="..\..\GUI\VipWindow.cpp" />
     <ClCompile Include="..\..\GUI\Trainer.cpp" />
+    <ClCompile Include="..\..\GUI\AutoLoot.cpp" />
     <ClCompile Include="..\..\GUI_Elements\GUI_Button.cpp" />
     <ClCompile Include="..\..\GUI_Elements\GUI_CharacterView.cpp" />
     <ClCompile Include="..\..\GUI_Elements\GUI_CheckBox.cpp" />

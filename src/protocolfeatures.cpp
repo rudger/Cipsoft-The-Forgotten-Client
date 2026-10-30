@@ -160,6 +160,7 @@ namespace
 		{"GameBlueNPCs", GAME_FEATURE_BLUE_NPCS},
 		{"GameItemDuration", GAME_FEATURE_ITEM_DURATION},
 		{"GameItemValues", GAME_FEATURE_ITEM_VALUES},
+		{"GameAutoLoot", GAME_FEATURE_AUTO_LOOT},
 		{"GameQuestTracker", GAME_FEATURE_QUEST_TRACKER},
 		{"GameTime", GAME_FEATURE_GAMETIME},
 		{"GameCompedium", GAME_FEATURE_COMPEDIUM},

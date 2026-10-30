@@ -193,6 +193,14 @@ class Game
 		void sendNPCPurchase(Uint16 itemid, Uint8 subtype, Uint16 amount);
 		void sendNPCSell(Uint16 itemid, Uint8 subtype, Uint16 amount);
 		void sendNPCClose();
+		void sendAutoLootRequest();
+		void sendAutoLootAdd(const std::string& itemName, const std::string& backpackName);
+		void sendAutoLootRemove(Uint8 index);
+		void sendAutoLootSettings(bool on, bool fallback);
+		void processAutoLootList(bool on, bool fallback, std::vector<AutoLootEntry>& entries);
+		bool isAutoLootOn() const {return m_autoLootOn;}
+		bool isAutoLootFallback() const {return m_autoLootFallback;}
+		std::vector<AutoLootEntry>& getAutoLootEntries() {return m_autoLootEntries;}
 		void sendAddVip(const std::string& name);
 		void sendRemoveVip(Uint32 playerGUID);
 		void sendEditVip(Uint32 playerGUID, const std::string& description, Uint32 iconId, bool notifyLogin, std::vector<Uint8>& groupIds);
@@ -374,6 +382,9 @@ class Game
 
 		std::unordered_set<Uint16> m_itemDurationTypes;
 		std::unordered_map<Uint16, Uint32> m_itemValues;
+		std::vector<AutoLootEntry> m_autoLootEntries;
+		bool m_autoLootOn = false;
+		bool m_autoLootFallback = true;
 
 		Position m_autoWalkDestination;
 		Position m_limitWalkDestination;
