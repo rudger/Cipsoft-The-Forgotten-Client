@@ -300,6 +300,7 @@ class Engine
 		SDL_INLINE void enableTemporaryChatInput() {setChatInputEnabled(true, true);}
 		SDL_INLINE void toggleChatInput() {setChatInputEnabled(!m_chatInputEnabled);}
 		SDL_INLINE void setWasdWalking(bool wasdWalking) {if(m_wasdWalking != wasdWalking) {m_wasdWalking = wasdWalking; setChatInputEnabled(!m_wasdWalking); resetToDefaultHotkeys(m_wasdWalking);}}
+		void updateHeldWalking();
 		SDL_INLINE void setSmartWalking(bool smartWalking) {m_smartWalking = smartWalking; if(!m_smartWalking) m_smartWalkDirections = 0;}
 		SDL_INLINE void setShowNames(bool showNames) {m_showNames = showNames;}
 		SDL_INLINE void setShowMarks(bool showMarks) {m_showMarks = showMarks;}
@@ -540,6 +541,9 @@ class Engine
 		bool m_showTrainingBar = true;
 		bool m_showSkillsBar[Skills_LastSkill];
 		Uint8 m_smartWalkDirections = 0;
+		Uint32 m_nextHeldWalk = 0;
+		Uint8 m_heldWalkMask = 0;
+		Uint8 m_heldWalkDirection = DIRECTION_INVALID;
 
 		Uint8 m_buySortMethod = Shop_Sort_Name;
 		Uint8 m_sellSortMethod = Shop_Sort_Name;

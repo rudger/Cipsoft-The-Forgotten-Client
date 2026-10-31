@@ -1514,6 +1514,8 @@ void Engine::onKeyDown(SDL_Event& event)
 	auto walkDirection = [&](Direction direction)
 	{
 		Uint8 directionMask = engineGetSmartWalkMask(direction);
+		m_heldWalkMask |= directionMask;
+		m_heldWalkDirection = SDL_static_cast(Uint8, direction);
 		if(m_smartWalking && directionMask != 0)
 		{
 			m_smartWalkDirections |= directionMask;
@@ -1529,6 +1531,8 @@ void Engine::onKeyDown(SDL_Event& event)
 	auto turnDirection = [&](Direction direction)
 	{
 		m_smartWalkDirections = 0;
+		m_heldWalkMask = 0;
+		m_heldWalkDirection = DIRECTION_INVALID;
 		g_game.sendTurn(direction);
 	};
 
@@ -1994,6 +1998,9 @@ void Engine::onKeyUp(SDL_Event& event)
 	auto releaseDirection = [&](Direction direction)
 	{
 		Uint8 directionMask = engineGetSmartWalkMask(direction);
+		m_heldWalkMask &= SDL_static_cast(Uint8, ~directionMask);
+		if(m_heldWalkDirection == SDL_static_cast(Uint8, direction))
+			m_heldWalkDirection = DIRECTION_INVALID;
 		if(m_smartWalking && directionMask != 0)
 		{
 			m_smartWalkDirections &= SDL_static_cast(Uint8, ~directionMask);
@@ -3615,11 +3622,65 @@ void Engine::setConsoleHeight(Sint32 height)
 	recalculateGameWindow();
 }
 
+// Keeps walking while movement keys are held. Walking used to depend on the
+// key repeat of the system, which only repeats the last pressed key: holding
+// S and A and releasing A made only one step south.
+void Engine::updateHeldWalking()
+{
+	if(m_heldWalkMask == 0 && m_heldWalkDirection == DIRECTION_INVALID)
+		return;
+
+	// The key up can go elsewhere (a window, focus lost): stop when no movement
+	// key is physically down anymore.
+	static const SDL_Scancode movementKeys[] = {
+		SDL_SCANCODE_UP, SDL_SCANCODE_DOWN, SDL_SCANCODE_LEFT, SDL_SCANCODE_RIGHT,
+		SDL_SCANCODE_W, SDL_SCANCODE_A, SDL_SCANCODE_S, SDL_SCANCODE_D,
+		SDL_SCANCODE_Q, SDL_SCANCODE_E, SDL_SCANCODE_Z, SDL_SCANCODE_C,
+		SDL_SCANCODE_KP_1, SDL_SCANCODE_KP_2, SDL_SCANCODE_KP_3, SDL_SCANCODE_KP_4,
+		SDL_SCANCODE_KP_6, SDL_SCANCODE_KP_7, SDL_SCANCODE_KP_8, SDL_SCANCODE_KP_9
+	};
+	const Uint8* keyboard = SDL_GetKeyboardState(NULL);
+	bool keyDown = false;
+	for(SDL_Scancode key : movementKeys)
+	{
+		if(keyboard[key])
+		{
+			keyDown = true;
+			break;
+		}
+	}
+
+	if(!keyDown || m_actWindow)
+	{
+		m_heldWalkMask = 0;
+		m_heldWalkDirection = DIRECTION_INVALID;
+		return;
+	}
+
+	Direction direction = SDL_static_cast(Direction, m_heldWalkDirection);
+	if(m_heldWalkMask != 0)
+	{
+		if(m_smartWalking)
+			direction = engineGetSmartWalkDirection(m_heldWalkMask, direction);
+		else if(direction == DIRECTION_INVALID || (engineGetSmartWalkMask(direction) & m_heldWalkMask) == 0)
+		{
+			Uint8 last = SDL_static_cast(Uint8, m_heldWalkMask & SDL_static_cast(Uint8, -SDL_static_cast(Sint32, m_heldWalkMask)));
+			direction = engineGetSmartWalkDirection(last, direction);
+		}
+	}
+
+	// When no step starts (a wall, or waiting for the server), try again a bit
+	// later instead of every frame, so "Sorry, not possible." isn't spammed.
+	if(direction != DIRECTION_INVALID && g_frameTime >= m_nextHeldWalk)
+		m_nextHeldWalk = (g_game.holdMovement(direction) ? 0 : g_frameTime + 250);
+}
+
 void Engine::update()
 {
 	if(m_ingame)
 	{
 		g_map.update();
+		updateHeldWalking();
 		UTIL_trainerThink();
 	}
 }

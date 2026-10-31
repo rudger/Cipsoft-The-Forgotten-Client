@@ -1877,6 +1877,22 @@ void Game::checkMovement(Direction dir)
 	checkLocalCreatureMovement();
 }
 
+bool Game::holdMovement(Direction dir)
+{
+	// A held movement key keeps walking, without the key repeat of the system.
+	// Returns false when no step could start (e.g. walking into a wall).
+	Creature* player = g_map.getLocalCreature();
+	if(!player || m_autoWalkDestination.x != 0xFFFF)
+		return true;
+	if(player->isPreWalking() || player->isWalking())
+		return true;
+
+	m_playerCurrentDir = dir;
+	m_playerMovement = dir;
+	checkLocalCreatureMovement();
+	return (player->isPreWalking() || player->isWalking());
+}
+
 void Game::releaseMovement()
 {
 	m_playerMovement = DIRECTION_INVALID;

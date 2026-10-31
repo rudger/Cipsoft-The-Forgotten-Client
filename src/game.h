@@ -215,6 +215,7 @@ class Game
 		void checkLocalCreatureMovement();
 		void checkMovement(Direction dir);
 		void releaseMovement();
+		bool holdMovement(Direction dir);
 
 		void switchToNextChannel();
 		void switchToPreviousChannel();
