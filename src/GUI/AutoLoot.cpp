@@ -174,7 +174,6 @@ class GUI_AutoLootList : public GUI_Element
 				g_engine.drawFont(CLIENT_FONT_NONOUTLINED, x + 40, posY + 13, entry.itemName, 175, 175, 175, CLIENT_FONT_ALIGN_LEFT);
 
 				x = m_tRect.x1 + 4 + (rowWidth - 24) / 2;
-				g_engine.drawFont(CLIENT_FONT_NONOUTLINED, x - 14, posY + 13, "->", 175, 175, 175, CLIENT_FONT_ALIGN_LEFT);
 				renderer->drawPicture(GUI_UI_IMAGE, GUI_UI_INVENTORY_EMPTY_X, GUI_UI_INVENTORY_EMPTY_Y, x, posY + 1, 34, 34);
 				if(SDL_static_cast(size_t, index) < m_backpacks.size() && m_backpacks[index])
 					m_backpacks[index]->render(x + 1, posY + 2, 32);
