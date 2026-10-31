@@ -213,6 +213,19 @@ class GUI_AutoLootList : public GUI_Element
 		Sint32 m_maxDisplay = 0;
 };
 
+// "Auto Loot on" in green or "Auto Loot off" in red.
+static void autoloot_UpdateOnCheckBox(GUI_CheckBox* pCheckBox, bool on)
+{
+	if(!pCheckBox)
+		return;
+
+	pCheckBox->setName(on ? "Auto Loot on" : "Auto Loot off");
+	if(on)
+		pCheckBox->setColor(0, 200, 0);
+	else
+		pCheckBox->setColor(220, 40, 40);
+}
+
 void autoloot_Events(Uint32 event, Sint32 status)
 {
 	GUI_Window* pWindow = g_engine.getWindow(GUI_WINDOW_AUTOLOOT);
@@ -244,6 +257,8 @@ void autoloot_Events(Uint32 event, Sint32 status)
 		// The check boxes also call this when the server list updates them, so
 		// only a change is sent.
 		case AUTOLOOT_ON_EVENTID:
+			if(pWindow)
+				autoloot_UpdateOnCheckBox(SDL_static_cast(GUI_CheckBox*, pWindow->getChild(AUTOLOOT_ON_EVENTID)), status != 0);
 			if((status != 0) != g_game.isAutoLootOn())
 				g_game.sendAutoLootSettings(status != 0, g_game.isAutoLootFallback());
 			break;
@@ -267,6 +282,7 @@ void UTIL_toggleAutoLootWindow()
 	GUI_Window* newWindow = new GUI_Window(iRect(0, 0, AUTOLOOT_WIDTH, AUTOLOOT_HEIGHT), AUTOLOOT_TITLE, GUI_WINDOW_AUTOLOOT);
 	GUI_CheckBox* newCheckBox = new GUI_CheckBox(iRect(16, 32, AUTOLOOT_WIDTH - 32, 22), "Auto Loot on", g_game.isAutoLootOn(), AUTOLOOT_ON_EVENTID);
 	newCheckBox->setBoxEventCallback(&autoloot_Events, AUTOLOOT_ON_EVENTID);
+	autoloot_UpdateOnCheckBox(newCheckBox, g_game.isAutoLootOn());
 	newCheckBox->startEvents();
 	newWindow->addChild(newCheckBox);
 
@@ -314,6 +330,7 @@ void UTIL_refreshAutoLootWindow()
 	GUI_CheckBox* pCheckBox = SDL_static_cast(GUI_CheckBox*, pWindow->getChild(AUTOLOOT_ON_EVENTID));
 	if(pCheckBox && pCheckBox->isChecked() != g_game.isAutoLootOn())
 		pCheckBox->setChecked(g_game.isAutoLootOn());
+	autoloot_UpdateOnCheckBox(pCheckBox, g_game.isAutoLootOn());
 	pCheckBox = SDL_static_cast(GUI_CheckBox*, pWindow->getChild(AUTOLOOT_FALLBACK_EVENTID));
 	if(pCheckBox && pCheckBox->isChecked() != g_game.isAutoLootFallback())
 		pCheckBox->setChecked(g_game.isAutoLootFallback());
