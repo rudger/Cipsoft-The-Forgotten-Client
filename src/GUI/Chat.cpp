@@ -65,8 +65,9 @@ ConsoleMessage g_lastMessage;
 #define CHAT_CHANNEL_SAVEWINDOW_EVENTID 3004
 #define CHAT_CHANNEL_CLEARWINDOW_EVENTID 3005
 
-#define CHAT_TOGGLE_BUTTON_W GUI_UI_BUTTON_75PX_GRAY_UP_W
-#define CHAT_TOGGLE_BUTTON_H GUI_UI_BUTTON_75PX_GRAY_UP_H
+// The 75px button is not in the 8.6 Tibia.pic, the 86px one is.
+#define CHAT_TOGGLE_BUTTON_W GUI_UI_BUTTON_86PX_GRAY_UP_W
+#define CHAT_TOGGLE_BUTTON_H GUI_UI_BUTTON_86PX_GRAY_UP_H
 
 static iRect chatToggleButtonRect(const iRect& rect)
 {
@@ -1729,7 +1730,7 @@ void Chat::render(iRect& rect)
 
 	const std::string chatToggleText = (g_engine.isChatInputEnabled() ? (g_engine.isChatInputTemporary() ? "Chat On*" : "Chat On") : "Chat Off");
 	bool chatTogglePressed = (m_chatToggleStatus == 1);
-	renderer->drawPicture(GUI_UI_IMAGE, (chatTogglePressed ? GUI_UI_BUTTON_75PX_GRAY_DOWN_X : GUI_UI_BUTTON_75PX_GRAY_UP_X), (chatTogglePressed ? GUI_UI_BUTTON_75PX_GRAY_DOWN_Y : GUI_UI_BUTTON_75PX_GRAY_UP_Y), chatToggleRect.x1, chatToggleRect.y1, chatToggleRect.x2, chatToggleRect.y2);
+	renderer->drawPicture(GUI_UI_IMAGE, (chatTogglePressed ? GUI_UI_BUTTON_86PX_GRAY_DOWN_X : GUI_UI_BUTTON_86PX_GRAY_UP_X), (chatTogglePressed ? GUI_UI_BUTTON_86PX_GRAY_DOWN_Y : GUI_UI_BUTTON_86PX_GRAY_UP_Y), chatToggleRect.x1, chatToggleRect.y1, chatToggleRect.x2, chatToggleRect.y2);
 	Uint32 chatToggleTextWidth = g_engine.calculateFontWidth(CLIENT_FONT_SMALL, chatToggleText);
 	g_engine.drawFont(CLIENT_FONT_SMALL, chatToggleRect.x1 + (chatToggleRect.x2 / 2) - SDL_static_cast(Sint32, chatToggleTextWidth / 2) + (chatTogglePressed ? 1 : 0), chatToggleRect.y1 + (chatTogglePressed ? 8 : 7), chatToggleText, 255, 255, 255, CLIENT_FONT_ALIGN_LEFT);
 

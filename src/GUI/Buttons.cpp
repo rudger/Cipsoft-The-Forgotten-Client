@@ -628,7 +628,7 @@ void UTIL_createButtonsPanel()
 		pPanel->addChild(newRadioButton);
 		if(g_game.hasGameFeature(GAME_FEATURE_AUTO_LOOT))
 		{
-			newButton = new GUI_Button(iRect(45, 25, GUI_UI_BUTTON_75PX_GRAY_UP_W, GUI_UI_BUTTON_75PX_GRAY_UP_H), BUTTONS_AUTOLOOT_TITLE, 0, BUTTONS_AUTOLOOT_DESCRIPTION);
+			newButton = new GUI_Button(iRect(45, 25, GUI_UI_BUTTON_86PX_GRAY_UP_W, GUI_UI_BUTTON_86PX_GRAY_UP_H), BUTTONS_AUTOLOOT_TITLE, 0, BUTTONS_AUTOLOOT_DESCRIPTION);
 			newButton->setButtonEventCallback(&buttons_Events, BUTTONS_AUTOLOOT_EVENTID);
 			newButton->startEvents();
 			pPanel->addChild(newButton);

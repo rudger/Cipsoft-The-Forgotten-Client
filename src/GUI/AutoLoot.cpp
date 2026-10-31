@@ -46,6 +46,33 @@
 extern Engine g_engine;
 extern Game g_game;
 
+// A text box that shows a gray hint (e.g. "<item name>") while it is empty,
+// until it is clicked to type.
+class GUI_HintTextBox : public GUI_TextBox
+{
+	public:
+		GUI_HintTextBox(iRect boxRect, const std::string& hint, Uint32 internalID = 0) : GUI_TextBox(boxRect, "", internalID), m_hint(hint) {}
+
+		void onLMouseDown(Sint32 x, Sint32 y)
+		{
+			m_clicked = true;
+			GUI_TextBox::onLMouseDown(x, y);
+		}
+
+		void render()
+		{
+			GUI_TextBox::render();
+			if(getActualText().empty() && !(m_clicked && isActive()))
+				g_engine.drawFont(CLIENT_FONT_NONOUTLINED, m_tRect.x1 + 4, m_tRect.y1 + 3, m_hint, 140, 140, 140, CLIENT_FONT_ALIGN_LEFT);
+			if(!isActive())
+				m_clicked = false;
+		}
+
+	protected:
+		std::string m_hint;
+		bool m_clicked = false;
+};
+
 // The list of auto loot items: item -> backpack, with a button to remove it.
 class GUI_AutoLootList : public GUI_Element
 {
@@ -83,7 +110,11 @@ class GUI_AutoLootList : public GUI_Element
 			clearItems();
 			for(AutoLootEntry& entry : g_game.getAutoLootEntries())
 			{
-				m_items.push_back(entry.itemId ? ItemUI::createItemUI(entry.itemId, 1) : NULL);
+				// Stackables are shown as a pile (e.g. gold coins), without a number.
+				ItemUI* item = (entry.itemId ? ItemUI::createItemUI(entry.itemId, 100) : NULL);
+				if(item)
+					item->setSubtype(100, false);
+				m_items.push_back(item);
 				m_backpacks.push_back(entry.backpackId ? ItemUI::createItemUI(entry.backpackId, 1) : NULL);
 			}
 			m_scrollBar.setScrollSize(SDL_static_cast(Sint32, m_items.size()) - m_maxDisplay);
@@ -150,7 +181,7 @@ class GUI_AutoLootList : public GUI_Element
 				g_engine.drawFont(CLIENT_FONT_NONOUTLINED, x + 40, posY + 13, entry.backpackName, 175, 175, 175, CLIENT_FONT_ALIGN_LEFT);
 
 				iRect removeRect = getRemoveRect(posY);
-				renderer->drawPicture(GUI_UI_IMAGE, GUI_UI_ICON_CLOSE_WINDOW_UP_X, GUI_UI_ICON_CLOSE_WINDOW_UP_Y, removeRect.x1, removeRect.y1, removeRect.x2, removeRect.y2);
+				renderer->drawPicture(GUI_UI_IMAGE, GUI_UI_ICON_CLOSE_CHANNEL_UP_X, GUI_UI_ICON_CLOSE_CHANNEL_UP_Y, removeRect.x1, removeRect.y1, removeRect.x2, removeRect.y2);
 				posY += AUTOLOOT_ROW_HEIGHT;
 			}
 
@@ -164,7 +195,7 @@ class GUI_AutoLootList : public GUI_Element
 	protected:
 		iRect getRemoveRect(Sint32 posY)
 		{
-			return iRect(m_tRect.x1 + m_tRect.x2 - 16 - GUI_UI_ICON_CLOSE_WINDOW_UP_W - 6, posY + (AUTOLOOT_ROW_HEIGHT - GUI_UI_ICON_CLOSE_WINDOW_UP_H) / 2, GUI_UI_ICON_CLOSE_WINDOW_UP_W, GUI_UI_ICON_CLOSE_WINDOW_UP_H);
+			return iRect(m_tRect.x1 + m_tRect.x2 - 16 - GUI_UI_ICON_CLOSE_CHANNEL_UP_W - 6, posY + (AUTOLOOT_ROW_HEIGHT - GUI_UI_ICON_CLOSE_CHANNEL_UP_H) / 2, GUI_UI_ICON_CLOSE_CHANNEL_UP_W, GUI_UI_ICON_CLOSE_CHANNEL_UP_H);
 		}
 
 		void clearItems()
@@ -240,24 +271,21 @@ void UTIL_toggleAutoLootWindow()
 	newCheckBox->startEvents();
 	newWindow->addChild(newCheckBox);
 
-	GUI_Label* newLabel = new GUI_Label(iRect(18, 62, 0, 0), "Item name:");
-	newWindow->addChild(newLabel);
-	newLabel = new GUI_Label(iRect(164, 62, 0, 0), "Backpack name:");
-	newWindow->addChild(newLabel);
-	GUI_TextBox* newTextBox = new GUI_TextBox(iRect(16, 76, 140, 16), "", AUTOLOOT_ITEM_EVENTID);
+	GUI_TextBox* newTextBox = new GUI_HintTextBox(iRect(16, 62, 134, 16), "<item name>", AUTOLOOT_ITEM_EVENTID);
 	newTextBox->setMaxLength(40);
 	newTextBox->startEvents();
 	newWindow->addChild(newTextBox);
-	newTextBox = new GUI_TextBox(iRect(162, 76, 128, 16), "", AUTOLOOT_BACKPACK_EVENTID);
+	newTextBox = new GUI_HintTextBox(iRect(156, 62, 124, 16), "<backpack name>", AUTOLOOT_BACKPACK_EVENTID);
 	newTextBox->setMaxLength(40);
 	newTextBox->startEvents();
 	newWindow->addChild(newTextBox);
-	GUI_Button* newButton = new GUI_Button(iRect(AUTOLOOT_WIDTH - 16 - GUI_UI_BUTTON_75PX_GRAY_UP_W, 74, GUI_UI_BUTTON_75PX_GRAY_UP_W, GUI_UI_BUTTON_75PX_GRAY_UP_H), "Add Item", CLIENT_GUI_ENTER_TRIGGER);
+	// The 75px button is not in the 8.6 Tibia.pic, the 86px one is.
+	GUI_Button* newButton = new GUI_Button(iRect(AUTOLOOT_WIDTH - 16 - GUI_UI_BUTTON_86PX_GRAY_UP_W, 60, GUI_UI_BUTTON_86PX_GRAY_UP_W, GUI_UI_BUTTON_86PX_GRAY_UP_H), "Add Item", CLIENT_GUI_ENTER_TRIGGER);
 	newButton->setButtonEventCallback(&autoloot_Events, AUTOLOOT_ADD_EVENTID);
 	newButton->startEvents();
 	newWindow->addChild(newButton);
 
-	GUI_AutoLootList* newList = new GUI_AutoLootList(iRect(16, 102, AUTOLOOT_WIDTH - 32, 4 + AUTOLOOT_ROW_HEIGHT * 5), AUTOLOOT_LIST_EVENTID);
+	GUI_AutoLootList* newList = new GUI_AutoLootList(iRect(16, 88, AUTOLOOT_WIDTH - 32, 4 + AUTOLOOT_ROW_HEIGHT * 5), AUTOLOOT_LIST_EVENTID);
 	newList->startEvents();
 	newWindow->addChild(newList);
 
