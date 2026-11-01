@@ -131,6 +131,257 @@ bool SpriteManager::loadHDSprites(const char* filename)
 	return true;
 }
 
+// Small inflate (zlib stream) for the HD sprites, so they don't depend on the
+// zlib library that is installed with the client.
+namespace
+{
+	struct HDInflateState
+	{
+		const unsigned char* in;
+		size_t inLen;
+		size_t inPos;
+		unsigned char* out;
+		size_t outLen;
+		size_t outPos;
+		Uint32 bitBuf;
+		Sint32 bitCount;
+		bool error;
+	};
+
+	struct HDHuffman
+	{
+		Uint16 counts[16];
+		Uint16 symbols[288];
+	};
+
+	inline Sint32 hdBits(HDInflateState& s, Sint32 need)
+	{
+		while(s.bitCount < need)
+		{
+			if(s.inPos >= s.inLen)
+			{
+				s.error = true;
+				return 0;
+			}
+			s.bitBuf |= SDL_static_cast(Uint32, s.in[s.inPos++]) << s.bitCount;
+			s.bitCount += 8;
+		}
+		Sint32 value = SDL_static_cast(Sint32, s.bitBuf & ((1u << need) - 1));
+		s.bitBuf >>= need;
+		s.bitCount -= need;
+		return value;
+	}
+
+	bool hdBuildHuffman(HDHuffman& h, const Uint8* lengths, Sint32 n)
+	{
+		SDL_memset(h.counts, 0, sizeof(h.counts));
+		for(Sint32 i = 0; i < n; ++i)
+			++h.counts[lengths[i]];
+		h.counts[0] = 0;
+
+		Sint32 left = 1;
+		for(Sint32 len = 1; len < 16; ++len)
+		{
+			left <<= 1;
+			left -= h.counts[len];
+			if(left < 0)
+				return false;
+		}
+
+		Uint16 offsets[16];
+		offsets[1] = 0;
+		for(Sint32 len = 1; len < 15; ++len)
+			offsets[len + 1] = offsets[len] + h.counts[len];
+		for(Sint32 i = 0; i < n; ++i)
+		{
+			if(lengths[i] != 0)
+				h.symbols[offsets[lengths[i]]++] = SDL_static_cast(Uint16, i);
+		}
+		return true;
+	}
+
+	Sint32 hdDecode(HDInflateState& s, const HDHuffman& h)
+	{
+		Sint32 code = 0, first = 0, index = 0;
+		for(Sint32 len = 1; len < 16; ++len)
+		{
+			code |= hdBits(s, 1);
+			if(s.error)
+				return -1;
+			Sint32 count = h.counts[len];
+			if(code - count < first)
+				return h.symbols[index + (code - first)];
+			index += count;
+			first += count;
+			first <<= 1;
+			code <<= 1;
+		}
+		s.error = true;
+		return -1;
+	}
+
+	bool hdInflateCodes(HDInflateState& s, const HDHuffman& lencode, const HDHuffman& distcode)
+	{
+		static const Uint16 lbase[29] = {3,4,5,6,7,8,9,10,11,13,15,17,19,23,27,31,35,43,51,59,67,83,99,115,131,163,195,227,258};
+		static const Uint8 lext[29] = {0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0};
+		static const Uint16 dbase[30] = {1,2,3,4,5,7,9,13,17,25,33,49,65,97,129,193,257,385,513,769,1025,1537,2049,3073,4097,6145,8193,12289,16385,24577};
+		static const Uint8 dext[30] = {0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13};
+		for(;;)
+		{
+			Sint32 symbol = hdDecode(s, lencode);
+			if(symbol < 0)
+				return false;
+			if(symbol < 256)
+			{
+				if(s.outPos >= s.outLen)
+					return false;
+				s.out[s.outPos++] = SDL_static_cast(unsigned char, symbol);
+			}
+			else if(symbol == 256)
+				return true;
+			else
+			{
+				symbol -= 257;
+				if(symbol >= 29)
+					return false;
+				size_t len = lbase[symbol] + hdBits(s, lext[symbol]);
+				Sint32 dsym = hdDecode(s, distcode);
+				if(dsym < 0 || dsym >= 30)
+					return false;
+				size_t dist = dbase[dsym] + hdBits(s, dext[dsym]);
+				if(s.error || dist > s.outPos || s.outPos + len > s.outLen)
+					return false;
+				for(size_t i = 0; i < len; ++i, ++s.outPos)
+					s.out[s.outPos] = s.out[s.outPos - dist];
+			}
+		}
+	}
+
+	bool hdInflateFixed(HDInflateState& s)
+	{
+		static HDHuffman lencode, distcode;
+		static bool built = false;
+		if(!built)
+		{
+			Uint8 lengths[288];
+			Sint32 i = 0;
+			for(; i < 144; ++i) lengths[i] = 8;
+			for(; i < 256; ++i) lengths[i] = 9;
+			for(; i < 280; ++i) lengths[i] = 7;
+			for(; i < 288; ++i) lengths[i] = 8;
+			hdBuildHuffman(lencode, lengths, 288);
+			for(i = 0; i < 30; ++i) lengths[i] = 5;
+			hdBuildHuffman(distcode, lengths, 30);
+			built = true;
+		}
+		return hdInflateCodes(s, lencode, distcode);
+	}
+
+	bool hdInflateDynamic(HDInflateState& s)
+	{
+		static const Uint8 order[19] = {16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15};
+		Sint32 nlen = hdBits(s, 5) + 257;
+		Sint32 ndist = hdBits(s, 5) + 1;
+		Sint32 ncode = hdBits(s, 4) + 4;
+		if(s.error || nlen > 286 || ndist > 30)
+			return false;
+
+		Uint8 lengths[320];
+		SDL_memset(lengths, 0, sizeof(lengths));
+		for(Sint32 i = 0; i < ncode; ++i)
+			lengths[order[i]] = SDL_static_cast(Uint8, hdBits(s, 3));
+		HDHuffman lencode, distcode;
+		if(s.error || !hdBuildHuffman(lencode, lengths, 19))
+			return false;
+
+		Sint32 index = 0;
+		while(index < nlen + ndist)
+		{
+			Sint32 symbol = hdDecode(s, lencode);
+			if(symbol < 0)
+				return false;
+			if(symbol < 16)
+				lengths[index++] = SDL_static_cast(Uint8, symbol);
+			else
+			{
+				Uint8 len = 0;
+				Sint32 repeat;
+				if(symbol == 16)
+				{
+					if(index == 0)
+						return false;
+					len = lengths[index - 1];
+					repeat = 3 + hdBits(s, 2);
+				}
+				else if(symbol == 17)
+					repeat = 3 + hdBits(s, 3);
+				else
+					repeat = 11 + hdBits(s, 7);
+				if(s.error || index + repeat > nlen + ndist)
+					return false;
+				while(repeat--)
+					lengths[index++] = len;
+			}
+		}
+
+		if(lengths[256] == 0)
+			return false;
+		if(!hdBuildHuffman(lencode, lengths, nlen))
+			return false;
+		// An incomplete distance code is allowed (e.g. only one distance).
+		hdBuildHuffman(distcode, lengths + nlen, ndist);
+		return hdInflateCodes(s, lencode, distcode);
+	}
+
+	// Returns the number of bytes written, or -1 on error.
+	Sint64 hdInflate(const unsigned char* in, size_t inLen, unsigned char* out, size_t outLen)
+	{
+		if(inLen < 2 || (in[0] & 0x0F) != 8 || ((SDL_static_cast(Uint32, in[0]) << 8) | in[1]) % 31 != 0 || (in[1] & 0x20))
+			return -1;
+
+		HDInflateState s;
+		s.in = in; s.inLen = inLen; s.inPos = 2;
+		s.out = out; s.outLen = outLen; s.outPos = 0;
+		s.bitBuf = 0; s.bitCount = 0; s.error = false;
+
+		Sint32 last;
+		do
+		{
+			last = hdBits(s, 1);
+			Sint32 type = hdBits(s, 2);
+			if(s.error)
+				return -1;
+
+			bool ok;
+			if(type == 0)
+			{
+				s.bitBuf = 0;
+				s.bitCount = 0;
+				if(s.inPos + 4 > s.inLen)
+					return -1;
+				size_t len = s.in[s.inPos] | (SDL_static_cast(size_t, s.in[s.inPos + 1]) << 8);
+				size_t nlen = s.in[s.inPos + 2] | (SDL_static_cast(size_t, s.in[s.inPos + 3]) << 8);
+				s.inPos += 4;
+				if(len != (~nlen & 0xFFFF) || s.inPos + len > s.inLen || s.outPos + len > s.outLen)
+					return -1;
+				SDL_memcpy(s.out + s.outPos, s.in + s.inPos, len);
+				s.inPos += len;
+				s.outPos += len;
+				ok = true;
+			}
+			else if(type == 1)
+				ok = hdInflateFixed(s);
+			else if(type == 2)
+				ok = hdInflateDynamic(s);
+			else
+				ok = false;
+			if(!ok || s.error)
+				return -1;
+		} while(!last);
+		return SDL_static_cast(Sint64, s.outPos);
+	}
+}
+
 unsigned char* SpriteManager::LoadSpriteHD(Uint32 spriteId, bool bgra)
 {
 	if(!m_hdSprites || spriteId == 0 || spriteId > m_hdOffsets.size())
@@ -169,11 +420,10 @@ unsigned char* SpriteManager::LoadSpriteHD(Uint32 spriteId, bool bgra)
 	if(readBytes != compressedSize)
 		HD_SPRITE_FAILED("read failed", readBytes);
 
-	uLongf destSize = SDL_static_cast(uLongf, pixelsSize);
-	int result = uncompress(pixels, &destSize, &compressed[0], compressedSize);
-	if(result != Z_OK)
-		HD_SPRITE_FAILED("zlib error", result);
-	if(destSize != pixelsSize)
+	Sint64 destSize = hdInflate(&compressed[0], compressedSize, pixels, pixelsSize);
+	if(destSize < 0)
+		HD_SPRITE_FAILED("damaged data", destSize);
+	if(destSize != SDL_static_cast(Sint64, pixelsSize))
 		HD_SPRITE_FAILED("wrong pixel count", destSize);
 	#undef HD_SPRITE_FAILED
 
