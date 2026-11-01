@@ -74,7 +74,11 @@ bool SpriteManager::loadHDSprites(const char* filename)
 	unloadHDSprites();
 	SDL_RWops* file = SDL_RWFromFile(filename, "rb");
 	if(!file)
+	{
+		SDL_snprintf(g_buffer, sizeof(g_buffer), "GameHDSprites is on but the HD sprites file '%s' can't be opened, the normal sprites are used.", filename);
+		UTIL_messageBox("The Forgotten Client - Error", g_buffer);
 		return false;
+	}
 
 	Uint32 signature = SDL_ReadLE32(file);
 	Uint32 magic = SDL_ReadLE32(file);
@@ -142,27 +146,36 @@ unsigned char* SpriteManager::LoadSpriteHD(Uint32 spriteId, bool bgra)
 		return pixels;
 
 	// A sprite that can't be read gives NULL, then the normal sprite is used.
-	SDL_RWseek(m_hdSprites, offset, RW_SEEK_SET);
+	// The first failure is shown once so the cause can be found.
+	static bool reported = false;
+	#define HD_SPRITE_FAILED(reason, value) do { \
+		if(!reported) { \
+			reported = true; \
+			SDL_snprintf(g_buffer, sizeof(g_buffer), "HD sprite %u can't be read: %s (%d, offset %u).\n\nThe normal sprites are used for sprites that can't be read.", spriteId, reason, SDL_static_cast(int, value), offset); \
+			UTIL_messageBox("The Forgotten Client - Error", g_buffer); \
+		} \
+		SDL_free(pixels); \
+		return NULL; \
+	} while(0)
+
+	if(SDL_RWseek(m_hdSprites, offset, RW_SEEK_SET) < 0)
+		HD_SPRITE_FAILED("seek failed", 0);
 	Uint32 compressedSize = SDL_ReadLE32(m_hdSprites);
 	if(compressedSize == 0 || compressedSize > pixelsSize * 2)
-	{
-		SDL_free(pixels);
-		return NULL;
-	}
+		HD_SPRITE_FAILED("wrong size", compressedSize);
 
 	std::vector<unsigned char> compressed(compressedSize);
-	if(SDL_RWread(m_hdSprites, &compressed[0], 1, compressedSize) != compressedSize)
-	{
-		SDL_free(pixels);
-		return NULL;
-	}
+	size_t readBytes = SDL_RWread(m_hdSprites, &compressed[0], 1, compressedSize);
+	if(readBytes != compressedSize)
+		HD_SPRITE_FAILED("read failed", readBytes);
 
 	uLongf destSize = SDL_static_cast(uLongf, pixelsSize);
-	if(uncompress(pixels, &destSize, &compressed[0], compressedSize) != Z_OK || destSize != pixelsSize)
-	{
-		SDL_free(pixels);
-		return NULL;
-	}
+	int result = uncompress(pixels, &destSize, &compressed[0], compressedSize);
+	if(result != Z_OK)
+		HD_SPRITE_FAILED("zlib error", result);
+	if(destSize != pixelsSize)
+		HD_SPRITE_FAILED("wrong pixel count", destSize);
+	#undef HD_SPRITE_FAILED
 
 	if(bgra)
 	{
