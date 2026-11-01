@@ -347,6 +347,9 @@ void Engine::loadCFG()
 		data = cfg.fetchKey("ShowLootFrames");
 		if(!data.empty())
 			m_showLootFrames = (data == "yes" ? true : false);
+		data = cfg.fetchKey("HDGraphics");
+		if(!data.empty())
+			m_hdGraphics = (data == "yes" ? true : false);
 		data = cfg.fetchKey("CreatureInfo");
 		m_showNames = (SDL_static_cast(Uint32, SDL_strtoul(data.c_str(), NULL, 10)) > 0 ? true : false);
 		data = cfg.fetchKey("CreatureMarks");
@@ -703,6 +706,8 @@ void Engine::saveCFG()
 		cfg.insertKey("ShowFPS", std::string(g_buffer, SDL_static_cast(size_t, len)));
 		len = SDL_snprintf(g_buffer, sizeof(g_buffer), "%s", (m_showLootFrames ? "yes" : "no"));
 		cfg.insertKey("ShowLootFrames", std::string(g_buffer, SDL_static_cast(size_t, len)));
+		len = SDL_snprintf(g_buffer, sizeof(g_buffer), "%s", (m_hdGraphics ? "yes" : "no"));
+		cfg.insertKey("HDGraphics", std::string(g_buffer, SDL_static_cast(size_t, len)));
 		len = SDL_snprintf(g_buffer, sizeof(g_buffer), "%u", (m_showNames ? 2 : 0));
 		cfg.insertKey("CreatureInfo", std::string(g_buffer, SDL_static_cast(size_t, len)));
 		len = SDL_snprintf(g_buffer, sizeof(g_buffer), "%s", (m_showMarks ? "yes" : "no"));
@@ -4192,6 +4197,37 @@ void Engine::drawDistanceEffect(ThingType* thing, Sint32 x, Sint32 y, Sint32 sca
 			posYc -= scale;
 		}
 	}
+}
+
+// HD graphics (General options): only when GameHDSprites allows it.
+void Engine::setHDGraphics(bool hdGraphics)
+{
+	if(m_hdGraphics == hdGraphics)
+		return;
+
+	m_hdGraphics = hdGraphics;
+	if(g_spriteManager.isSprLoaded())
+	{
+		updateHDSprites();
+		if(m_surface)
+			m_surface->spriteManagerReset();
+	}
+}
+
+// Loads or unloads Tibia96.spr (next to Tibia.spr), the renderer has to reset
+// its sprites afterwards.
+void Engine::updateHDSprites()
+{
+	bool wanted = (m_hdGraphics && g_game.hasGameFeature(GAME_FEATURE_HD_SPRITES) && !g_game.hasGameFeature(GAME_FEATURE_NEWFILES_STRUCTURE));
+	if(!wanted)
+	{
+		g_spriteManager.unloadHDSprites();
+		return;
+	}
+
+	size_t slash = g_sprPath.find_last_of("/\\");
+	std::string hdPath = (slash != std::string::npos ? g_sprPath.substr(0, slash + 1) : std::string()) + "Tibia96.spr";
+	g_spriteManager.loadHDSprites(hdPath.c_str());
 }
 
 // The size of the sprites the renderer gets: the HD size (GameHDSprites) when

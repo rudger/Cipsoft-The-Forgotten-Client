@@ -74,11 +74,7 @@ bool SpriteManager::loadHDSprites(const char* filename)
 	unloadHDSprites();
 	SDL_RWops* file = SDL_RWFromFile(filename, "rb");
 	if(!file)
-	{
-		SDL_snprintf(g_buffer, sizeof(g_buffer), "GameHDSprites is on but the HD sprites file '%s' can't be opened, the normal sprites are used.", filename);
-		UTIL_messageBox("The Forgotten Client - Error", g_buffer);
 		return false;
-	}
 
 	Uint32 signature = SDL_ReadLE32(file);
 	Uint32 magic = SDL_ReadLE32(file);
