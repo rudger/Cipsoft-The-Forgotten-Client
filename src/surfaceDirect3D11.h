@@ -126,7 +126,7 @@ class SurfaceDirect3D11 : public Surface
 		SurfaceDirect3D11(const SurfaceDirect3D11&&) = delete;
 		SurfaceDirect3D11& operator=(const SurfaceDirect3D11&&) = delete;
 
-		bool createDirect3DTexture(Direct3D11Texture& texture, Uint32 width, Uint32 height, bool linearSampler, bool frameBuffer = false);
+		bool createDirect3DTexture(Direct3D11Texture& texture, Uint32 width, Uint32 height, bool linearSampler, bool frameBuffer = false, bool mipmaps = false);
 		bool updateTextureData(Direct3D11Texture& texture, unsigned char* data);
 		void releaseDirect3DTexture(Direct3D11Texture& texture);
 		void updateTextureScaling(Direct3D11Texture& texture);

@@ -75,6 +75,7 @@ using namespace Windows::Graphics::Display;
 #define ID3D11DeviceContext_IASetIndexBuffer(This,pIndexBuffer,Format,Offset) (This)->IASetIndexBuffer(pIndexBuffer,Format,Offset)
 #define ID3D11DeviceContext_IASetPrimitiveTopology(This,Topology) (This)->IASetPrimitiveTopology(Topology)
 #define ID3D11DeviceContext_IASetInputLayout(This,pInputLayout) (This)->IASetInputLayout(pInputLayout)
+#define ID3D11DeviceContext_GenerateMips(This,pShaderResourceView) (This)->GenerateMips(pShaderResourceView)
 #define ID3D11DeviceContext_Draw(This,VertexCount,StartVertexLocation) (This)->Draw(VertexCount,StartVertexLocation)
 #define ID3D11DeviceContext_DrawIndexed(This,IndexCount,StartIndexLocation,BaseVertexLocation) (This)->DrawIndexed(IndexCount,StartIndexLocation,BaseVertexLocation)
 #define ID3D11DeviceContext_VSSetShader(This,pVertexShader,ppClassInstances,NumClassInstances) (This)->VSSetShader(pVertexShader,ppClassInstances,NumClassInstances)
@@ -280,7 +281,7 @@ SurfaceDirect3D11::~SurfaceDirect3D11()
 	#endif
 }
 
-bool SurfaceDirect3D11::createDirect3DTexture(Direct3D11Texture& texture, Uint32 width, Uint32 height, bool linearSampler, bool frameBuffer)
+bool SurfaceDirect3D11::createDirect3DTexture(Direct3D11Texture& texture, Uint32 width, Uint32 height, bool linearSampler, bool frameBuffer, bool mipmaps)
 {
 	releaseDirect3DTexture(texture);
 
@@ -288,12 +289,14 @@ bool SurfaceDirect3D11::createDirect3DTexture(Direct3D11Texture& texture, Uint32
 	SDL_zero(textureDesc);
 	textureDesc.Width = width;
 	textureDesc.Height = height;
-	textureDesc.MipLevels = 1;
+	// Mipmaps (render targets only) let a big HD game window shrink smoothly.
+	mipmaps = (mipmaps && frameBuffer);
+	textureDesc.MipLevels = (mipmaps ? 0 : 1);
 	textureDesc.ArraySize = 1;
 	textureDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
 	textureDesc.SampleDesc.Count = 1;
 	textureDesc.SampleDesc.Quality = 0;
-	textureDesc.MiscFlags = 0;
+	textureDesc.MiscFlags = (mipmaps ? D3D11_RESOURCE_MISC_GENERATE_MIPS : 0);
 	textureDesc.Usage = D3D11_USAGE_DEFAULT;
 	textureDesc.CPUAccessFlags = 0;
 	if(frameBuffer)
@@ -309,7 +312,7 @@ bool SurfaceDirect3D11::createDirect3DTexture(Direct3D11Texture& texture, Uint32
 	resourceViewDesc.Format = textureDesc.Format;
 	resourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	resourceViewDesc.Texture2D.MostDetailedMip = 0;
-	resourceViewDesc.Texture2D.MipLevels = textureDesc.MipLevels;
+	resourceViewDesc.Texture2D.MipLevels = (mipmaps ? SDL_static_cast(UINT, -1) : 1);
 	result = ID3D11Device_CreateShaderResourceView(SDL_reinterpret_cast(ID3D11Device*, m_device), SDL_reinterpret_cast(ID3D11Resource*, texture.m_texture), &resourceViewDesc, SDL_reinterpret_cast(ID3D11ShaderResourceView**, &texture.m_resource));
 	if(FAILED(result))
 	{
@@ -1296,7 +1299,11 @@ void SurfaceDirect3D11::createGameWindow()
 	if(m_gameWindow)
 		releaseDirect3DTexture(m_gameWindow);
 
-	if(!createDirect3DTexture(m_gameWindow, RENDERTARGET_WIDTH * m_sceneScale, RENDERTARGET_HEIGHT * m_sceneScale, (g_engine.getAntialiasing() == CLIENT_ANTIALIASING_NORMAL), true))
+	// With HD sprites the game window is drawn smaller than it is: it needs
+	// smooth (linear + mipmap) sampling, otherwise pixels get skipped and
+	// single light pixels flicker.
+	bool hd = (m_sceneScale > 1);
+	if(!createDirect3DTexture(m_gameWindow, RENDERTARGET_WIDTH * m_sceneScale, RENDERTARGET_HEIGHT * m_sceneScale, (hd || g_engine.getAntialiasing() == CLIENT_ANTIALIASING_NORMAL), true, hd))
 	{
 		UTIL_MessageBox(false, "Direct3D11: Out of video memory.");
 		exit(-1);
@@ -1772,6 +1779,8 @@ void SurfaceDirect3D11::drawGameScene(Sint32 sx, Sint32 sy, Sint32 sw, Sint32 sh
 	texcoords[6] = maxu; texcoords[7] = maxv;
 
 	scheduleBatch();
+	if(sceneScale > 1)
+		ID3D11DeviceContext_GenerateMips(SDL_reinterpret_cast(ID3D11DeviceContext*, m_context), SDL_reinterpret_cast(ID3D11ShaderResourceView*, m_gameWindow.m_resource));
 	ID3D11DeviceContext_OMSetBlendState(SDL_reinterpret_cast(ID3D11DeviceContext*, m_context), NULL, 0, 0xFFFFFFFF);
 	if(g_engine.isSharpening() && m_haveSharpening)
 	{
