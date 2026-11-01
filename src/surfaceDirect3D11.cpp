@@ -1744,6 +1744,10 @@ void SurfaceDirect3D11::drawGameScene(Sint32 sx, Sint32 sy, Sint32 sw, Sint32 sh
 	Sint32 sceneScale = SDL_static_cast(Sint32, m_sceneScale);
 	sx *= sceneScale; sy *= sceneScale; sw *= sceneScale; sh *= sceneScale;
 
+	// Sharpening makes light dots next to the dark outlines of HD sprites
+	// that are shrunk to the window, so it is skipped with HD sprites.
+	bool sharpen = (g_engine.isSharpening() && m_haveSharpening && sceneScale == 1);
+
 	Uint8 antialiasing = g_engine.getAntialiasing();
 	if(antialiasing == CLIENT_ANTIALIASING_INTEGER && sceneScale == 1)
 	{
@@ -1782,7 +1786,7 @@ void SurfaceDirect3D11::drawGameScene(Sint32 sx, Sint32 sy, Sint32 sw, Sint32 sh
 	if(sceneScale > 1)
 		ID3D11DeviceContext_GenerateMips(SDL_reinterpret_cast(ID3D11DeviceContext*, m_context), SDL_reinterpret_cast(ID3D11ShaderResourceView*, m_gameWindow.m_resource));
 	ID3D11DeviceContext_OMSetBlendState(SDL_reinterpret_cast(ID3D11DeviceContext*, m_context), NULL, 0, 0xFFFFFFFF);
-	if(g_engine.isSharpening() && m_haveSharpening)
+	if(sharpen)
 	{
 		float textureDimensions[2] = {1.0f / w * (sw * m_gameWindow.m_scaleW), 1.0f / h * (sh * m_gameWindow.m_scaleH)};
 		ID3D11DeviceContext_PSSetShader(SDL_reinterpret_cast(ID3D11DeviceContext*, m_context), SDL_reinterpret_cast(ID3D11PixelShader*, m_pixelShaderSharpen), NULL, 0);
@@ -1793,7 +1797,7 @@ void SurfaceDirect3D11::drawGameScene(Sint32 sx, Sint32 sy, Sint32 sw, Sint32 sh
 	drawQuad(getTextureIndex(&m_gameWindow), vertices, texcoords);
 	scheduleBatch();
 	ID3D11DeviceContext_OMSetBlendState(SDL_reinterpret_cast(ID3D11DeviceContext*, m_context), SDL_reinterpret_cast(ID3D11BlendState*, m_blendBlend), 0, 0xFFFFFFFF);
-	if(g_engine.isSharpening() && m_haveSharpening)
+	if(sharpen)
 	{
 		ID3D11Buffer* resources = NULL;
 		ID3D11DeviceContext_PSSetShader(SDL_reinterpret_cast(ID3D11DeviceContext*, m_context), SDL_reinterpret_cast(ID3D11PixelShader*, m_pixelShaderTexture), NULL, 0);
