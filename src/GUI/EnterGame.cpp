@@ -323,6 +323,14 @@ void enterGame_Events(Uint32 event, Sint32)
 							return;
 						}
 					}
+
+					// HD sprites (GameHDSprites): Tibia96.spr in the same folder as Tibia.spr.
+					if(g_game.hasGameFeature(GAME_FEATURE_HD_SPRITES) && !g_game.hasGameFeature(GAME_FEATURE_NEWFILES_STRUCTURE))
+					{
+						size_t slash = g_sprPath.find_last_of("/\\");
+						std::string hdPath = (slash != std::string::npos ? g_sprPath.substr(0, slash + 1) : std::string()) + "Tibia96.spr";
+						g_spriteManager.loadHDSprites(hdPath.c_str());
+					}
 					g_engine.getRender()->spriteManagerReset();
 				}
 				if(!g_thingManager.isDatLoaded())

@@ -76,6 +76,9 @@ class Surface
 		virtual void drawSpriteMask(Uint32 spriteId, Uint32 maskSpriteId, Sint32 x, Sint32 y, Sint32 w, Sint32 h, Sint32 sx, Sint32 sy, Sint32 sw, Sint32 sh, Uint32 outfitColor) = 0;
 
 		virtual void drawAutomapTile(Uint32 currentArea, bool& recreate, Uint8 color[256][256], Sint32 x, Sint32 y, Sint32 w, Sint32 h, Sint32 sx, Sint32 sy, Sint32 sw, Sint32 sh) = 0;
+
+		// Renderers that can draw HD sprites (GameHDSprites) in full detail.
+		virtual bool supportsHDSprites() {return false;}
 };
 
 class GUI_Window;
@@ -171,7 +174,8 @@ class Engine
 		void drawEffect(ThingType* thing, Sint32 x, Sint32 y, Sint32 scaled, Uint8 xPattern, Uint8 yPattern, Uint8 zPattern, Uint8 animation);
 		void drawDistanceEffect(ThingType* thing, Sint32 x, Sint32 y, Sint32 scaled, Uint8 xPattern, Uint8 yPattern, Uint8 zPattern, Uint8 animation);
 
-		unsigned char* LoadSprite(Uint32 spriteId, bool bgra);
+		unsigned char* LoadSprite(Uint32 spriteId, bool bgra, bool nearest = false);
+		Uint32 getSpriteSize();
 		unsigned char* LoadSpriteMask(Uint32 spriteId, Uint32 maskSpriteId, Uint32 outfitColor, bool bgra);
 		unsigned char* LoadPicture(Uint16 pictureId, bool bgra, Sint32& width, Sint32& height);
 

@@ -151,6 +151,8 @@ class SurfaceDirect3D11 : public Surface
 		virtual void doResize(Sint32 w, Sint32 h);
 		virtual void spriteManagerReset();
 		virtual unsigned char* getScreenPixels(Sint32& width, Sint32& height, bool& bgra);
+		virtual bool supportsHDSprites() {return true;}
+		void createGameWindow();
 
 		virtual void beginScene();
 		virtual void endScene();
@@ -252,6 +254,16 @@ class SurfaceDirect3D11 : public Surface
 		Uint32 m_spriteAtlases = 0;
 		Uint32 m_spritesPerAtlas = 0;
 		Uint32 m_spritesPerModulo = 0;
+
+		// HD sprites (GameHDSprites): sprites are m_spriteSize big in the atlases
+		// and the game window is m_sceneScale times bigger, while everything is
+		// still drawn in 32 pixel units (m_viewScale is the scale of the current
+		// render target).
+		Uint32 m_spriteSize = 32;
+		Uint32 m_sceneScale = 1;
+		Uint32 m_viewScale = 1;
+		Uint32 m_spritesPerRow = 0;
+		Uint32 m_maxSprites = MAX_SPRITES;
 
 		Sint32 m_viewPortX = 0;
 		Sint32 m_viewPortY = 0;

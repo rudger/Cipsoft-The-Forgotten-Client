@@ -161,6 +161,7 @@ namespace
 		{"GameItemDuration", GAME_FEATURE_ITEM_DURATION},
 		{"GameItemValues", GAME_FEATURE_ITEM_VALUES},
 		{"GameAutoLoot", GAME_FEATURE_AUTO_LOOT},
+		{"GameHDSprites", GAME_FEATURE_HD_SPRITES},
 		{"GameQuestTracker", GAME_FEATURE_QUEST_TRACKER},
 		{"GameTime", GAME_FEATURE_GAMETIME},
 		{"GameCompedium", GAME_FEATURE_COMPEDIUM},

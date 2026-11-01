@@ -763,8 +763,10 @@ void SurfaceDirect3D11::updateViewport()
 	float v_21, v_22, v_23, v_24;
 	float v_31, v_32, v_33, v_34;
 	float v_41, v_42, v_43, v_44;
-	v_11 = 2.0f / m_viewPortW; v_12 = 0.0f; v_13 = 0.0f; v_14 = 0.0f;
-	v_21 = 0.0f; v_22 = -2.0f / m_viewPortH; v_23 = 0.0f; v_24 = 0.0f;
+	float logicalW = SDL_static_cast(float, m_viewPortW) / m_viewScale;
+	float logicalH = SDL_static_cast(float, m_viewPortH) / m_viewScale;
+	v_11 = 2.0f / logicalW; v_12 = 0.0f; v_13 = 0.0f; v_14 = 0.0f;
+	v_21 = 0.0f; v_22 = -2.0f / logicalH; v_23 = 0.0f; v_24 = 0.0f;
 	v_31 = 0.0f; v_32 = 0.0f; v_33 = 1.0f; v_34 = 0.0f;
 	v_41 = -1.0f; v_42 = 1.0f; v_43 = 0.0f; v_44 = 1.0f;
 
@@ -1236,11 +1238,7 @@ void SurfaceDirect3D11::init()
 		exit(-1);
 	}
 
-	if(!createDirect3DTexture(m_gameWindow, RENDERTARGET_WIDTH, RENDERTARGET_HEIGHT, (g_engine.getAntialiasing() == CLIENT_ANTIALIASING_NORMAL), true))
-	{
-		UTIL_MessageBox(false, "Direct3D11: Out of video memory.");
-		exit(-1);
-	}
+	createGameWindow();
 
 	#if OPENGL_CORE_USE_UINT_INDICES > 0
 	std::vector<Uint32> indices(DIRECT3D11_MAX_INDICES);
@@ -1293,6 +1291,18 @@ void SurfaceDirect3D11::init()
 	#endif
 }
 
+void SurfaceDirect3D11::createGameWindow()
+{
+	if(m_gameWindow)
+		releaseDirect3DTexture(m_gameWindow);
+
+	if(!createDirect3DTexture(m_gameWindow, RENDERTARGET_WIDTH * m_sceneScale, RENDERTARGET_HEIGHT * m_sceneScale, (g_engine.getAntialiasing() == CLIENT_ANTIALIASING_NORMAL), true))
+	{
+		UTIL_MessageBox(false, "Direct3D11: Out of video memory.");
+		exit(-1);
+	}
+}
+
 void SurfaceDirect3D11::doResize(Sint32, Sint32)
 {
 	m_needReset = true;
@@ -1300,7 +1310,20 @@ void SurfaceDirect3D11::doResize(Sint32, Sint32)
 
 void SurfaceDirect3D11::generateSpriteAtlases()
 {
-	if(m_maxTextureSize >= 16384 && MAX_SPRITES > 65536)
+	bool linearAtlas = false;
+	if(m_spriteSize > 32)
+	{
+		// HD sprites: one 8192 atlas (or up to four 4096 ones) is enough for the
+		// sprites of a screen; the least used ones are replaced when it is full.
+		Uint32 atlasSize = (m_maxTextureSize >= 8192 ? 8192 : UTIL_min<Uint32>(SDL_static_cast(Uint32, m_maxTextureSize), 4096));
+		m_spritesPerModulo = atlasSize;
+		m_spritesPerRow = atlasSize / m_spriteSize;
+		m_spritesPerAtlas = m_spritesPerRow * m_spritesPerRow;
+		m_spriteAtlases = UTIL_max<Uint32>(1, UTIL_min<Uint32>(4, (4096 + m_spritesPerAtlas - 1) / m_spritesPerAtlas));
+		m_maxSprites = UTIL_min<Uint32>(MAX_SPRITES, m_spriteAtlases * m_spritesPerAtlas);
+		linearAtlas = true;// they are also drawn smaller, e.g. in the inventory
+	}
+	else if(m_maxTextureSize >= 16384 && MAX_SPRITES > 65536)
 	{
 		m_spriteAtlases = (MAX_SPRITES + 262143) / 262144;
 		m_spritesPerAtlas = 262144;
@@ -1325,10 +1348,16 @@ void SurfaceDirect3D11::generateSpriteAtlases()
 		m_spritesPerModulo = 2048;
 	}
 
+	if(m_spriteSize <= 32)
+	{
+		m_spritesPerRow = m_spritesPerModulo / 32;
+		m_maxSprites = MAX_SPRITES;
+	}
+
 	for(Uint32 i = 0; i < m_spriteAtlases; ++i)
 	{
 		m_spritesAtlas.emplace_back();
-		if(!createDirect3DTexture(m_spritesAtlas.back(), m_spritesPerModulo, m_spritesPerModulo, false))
+		if(!createDirect3DTexture(m_spritesAtlas.back(), m_spritesPerModulo, m_spritesPerModulo, linearAtlas))
 		{
 			UTIL_MessageBox(true, "Direct3D11: Out of video memory.");
 			exit(-1);
@@ -1338,6 +1367,14 @@ void SurfaceDirect3D11::generateSpriteAtlases()
 
 void SurfaceDirect3D11::spriteManagerReset()
 {
+	Uint32 spriteSize = g_engine.getSpriteSize();
+	if(spriteSize != m_spriteSize)
+	{
+		m_spriteSize = spriteSize;
+		m_sceneScale = UTIL_max<Uint32>(1, spriteSize / 32);
+		createGameWindow();
+	}
+
 	for(U32BD3D11Textures::iterator it = m_automapTiles.begin(), end = m_automapTiles.end(); it != end; ++it)
 		releaseDirect3DTexture(it->second);
 	
@@ -1599,6 +1636,7 @@ void SurfaceDirect3D11::scheduleBatch()
 
 bool SurfaceDirect3D11::integer_scaling(Sint32 sx, Sint32 sy, Sint32 sw, Sint32 sh, Sint32 x, Sint32 y, Sint32 w, Sint32 h)
 {
+	m_viewScale = 1;
 	Sint32 width = RENDERTARGET_WIDTH;
 	Sint32 height = RENDERTARGET_HEIGHT;
 	UTIL_integer_scale(width, height, w, h, m_maxTextureSize, m_maxTextureSize);
@@ -1695,8 +1733,12 @@ bool SurfaceDirect3D11::integer_scaling(Sint32 sx, Sint32 sy, Sint32 sw, Sint32 
 
 void SurfaceDirect3D11::drawGameScene(Sint32 sx, Sint32 sy, Sint32 sw, Sint32 sh, Sint32 x, Sint32 y, Sint32 w, Sint32 h)
 {
+	// The game window is m_sceneScale times bigger with HD sprites.
+	Sint32 sceneScale = SDL_static_cast(Sint32, m_sceneScale);
+	sx *= sceneScale; sy *= sceneScale; sw *= sceneScale; sh *= sceneScale;
+
 	Uint8 antialiasing = g_engine.getAntialiasing();
-	if(antialiasing == CLIENT_ANTIALIASING_INTEGER)
+	if(antialiasing == CLIENT_ANTIALIASING_INTEGER && sceneScale == 1)
 	{
 		if(integer_scaling(sx, sy, sw, sh, x, y, w, h))
 			return;
@@ -1759,6 +1801,7 @@ void SurfaceDirect3D11::beginGameScene()
 	m_viewPortW = m_gameWindow.m_width;
 	m_viewPortH = m_gameWindow.m_height;
 	m_currentRenderTargetView = m_gameWindow.m_frameBuffer;
+	m_viewScale = m_sceneScale;
 	updateViewport();
 	fillRectangle(0, 0, RENDERTARGET_WIDTH, RENDERTARGET_HEIGHT, 0x00, 0x00, 0x00, 0xFF);
 }
@@ -1772,6 +1815,7 @@ void SurfaceDirect3D11::endGameScene()
 	m_viewPortW = g_engine.getWindowWidth();
 	m_viewPortH = g_engine.getWindowHeight();
 	m_currentRenderTargetView = m_mainRenderTargetView;
+	m_viewScale = 1;
 	updateViewport();
 }
 
@@ -2013,10 +2057,11 @@ void SurfaceDirect3D11::setClipRect(Sint32 x, Sint32 y, Sint32 w, Sint32 h)
 		break;
 		default:
 		{
-			scissorRect.left = m_viewPortX + x;
-			scissorRect.right = m_viewPortX + x + w;
-			scissorRect.top = m_viewPortY + y;
-			scissorRect.bottom = m_viewPortY + y + h;
+			Sint32 scale = SDL_static_cast(Sint32, m_viewScale);
+			scissorRect.left = m_viewPortX + x * scale;
+			scissorRect.right = m_viewPortX + (x + w) * scale;
+			scissorRect.top = m_viewPortY + y * scale;
+			scissorRect.bottom = m_viewPortY + (y + h) * scale;
 		}
 		break;
 	}
@@ -2329,8 +2374,8 @@ bool SurfaceDirect3D11::loadSprite(Uint32 spriteId, Direct3D11Texture* texture, 
 	ID3D11Texture2D* stagingTexture;
 	D3D11_TEXTURE2D_DESC stagingTextureDesc;
 	ID3D11Texture2D_GetDesc(SDL_reinterpret_cast(ID3D11Texture2D*, texture->m_texture), &stagingTextureDesc);
-	stagingTextureDesc.Width = 32;
-	stagingTextureDesc.Height = 32;
+	stagingTextureDesc.Width = m_spriteSize;
+	stagingTextureDesc.Height = m_spriteSize;
 	stagingTextureDesc.BindFlags = 0;
 	stagingTextureDesc.MiscFlags = 0;
 	stagingTextureDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
@@ -2353,15 +2398,15 @@ bool SurfaceDirect3D11::loadSprite(Uint32 spriteId, Direct3D11Texture* texture, 
 	}
 
 	unsigned char* dstData = SDL_reinterpret_cast(unsigned char*, textureMemory.pData);
-	UINT length = 32 * 4;
+	UINT length = m_spriteSize * 4;
 	if(length == textureMemory.RowPitch)
-		UTIL_FastCopy(SDL_reinterpret_cast(Uint8*, dstData), SDL_reinterpret_cast(const Uint8*, pixels), length * 32);
+		UTIL_FastCopy(SDL_reinterpret_cast(Uint8*, dstData), SDL_reinterpret_cast(const Uint8*, pixels), length * m_spriteSize);
 	else
 	{
 		unsigned char* srcPixels = pixels;
 		if(length > textureMemory.RowPitch)
 			length = textureMemory.RowPitch;
-		for(Uint32 row = 0; row < 32; ++row)
+		for(Uint32 row = 0; row < m_spriteSize; ++row)
 		{
 			UTIL_FastCopy(SDL_reinterpret_cast(Uint8*, dstData), SDL_reinterpret_cast(const Uint8*, srcPixels), length);
 			srcPixels += length;
@@ -2384,8 +2429,8 @@ bool SurfaceDirect3D11::loadSpriteMask(Uint32 spriteId, Uint32 maskSpriteId, Uin
 	ID3D11Texture2D* stagingTexture;
 	D3D11_TEXTURE2D_DESC stagingTextureDesc;
 	ID3D11Texture2D_GetDesc(SDL_reinterpret_cast(ID3D11Texture2D*, texture->m_texture), &stagingTextureDesc);
-	stagingTextureDesc.Width = 32;
-	stagingTextureDesc.Height = 32;
+	stagingTextureDesc.Width = m_spriteSize;
+	stagingTextureDesc.Height = m_spriteSize;
 	stagingTextureDesc.BindFlags = 0;
 	stagingTextureDesc.MiscFlags = 0;
 	stagingTextureDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
@@ -2408,15 +2453,15 @@ bool SurfaceDirect3D11::loadSpriteMask(Uint32 spriteId, Uint32 maskSpriteId, Uin
 	}
 
 	unsigned char* dstData = SDL_reinterpret_cast(unsigned char*, textureMemory.pData);
-	UINT length = 32 * 4;
+	UINT length = m_spriteSize * 4;
 	if(length == textureMemory.RowPitch)
-		UTIL_FastCopy(SDL_reinterpret_cast(Uint8*, dstData), SDL_reinterpret_cast(const Uint8*, pixels), length * 32);
+		UTIL_FastCopy(SDL_reinterpret_cast(Uint8*, dstData), SDL_reinterpret_cast(const Uint8*, pixels), length * m_spriteSize);
 	else
 	{
 		unsigned char* srcPixels = pixels;
 		if(length > textureMemory.RowPitch)
 			length = textureMemory.RowPitch;
-		for(Uint32 row = 0; row < 32; ++row)
+		for(Uint32 row = 0; row < m_spriteSize; ++row)
 		{
 			UTIL_FastCopy(SDL_reinterpret_cast(Uint8*, dstData), SDL_reinterpret_cast(const Uint8*, srcPixels), length);
 			srcPixels += length;
@@ -2454,9 +2499,9 @@ void SurfaceDirect3D11::drawSprite(Uint32 spriteId, Sint32 x, Sint32 y, Sint32 w
 	U64BD3D11Textures::iterator it = m_sprites.find(tempPos);
 	if(it == m_sprites.end())
 	{
-		if(m_sprites.size() >= MAX_SPRITES)
+		if(m_sprites.size() >= m_maxSprites)
 		{
-			while(++m_spriteChecker < MAX_SPRITES)
+			while(++m_spriteChecker < m_maxSprites)
 			{
 				Uint64 oldSpriteId = m_spritesIds.front();
 				it = m_sprites.find(oldSpriteId);
@@ -2497,13 +2542,13 @@ void SurfaceDirect3D11::drawSprite(Uint32 spriteId, Sint32 x, Sint32 y, Sint32 w
 		{
 			Uint32 spriteIndex = SDL_static_cast(Uint32, m_sprites.size());
 			Uint32 spriteAtlas = spriteIndex / m_spritesPerAtlas;
-			spriteIndex = (spriteIndex % m_spritesPerAtlas) * 32;
+			spriteIndex = (spriteIndex % m_spritesPerAtlas);
 			if(spriteAtlas >= m_spritesAtlas.size())
 				return;
 
 			Direct3D11SpriteData& sprData = m_sprites[tempPos];
-			sprData.m_xOffset = spriteIndex % m_spritesPerModulo;
-			sprData.m_yOffset = (spriteIndex / m_spritesPerModulo) * 32;
+			sprData.m_xOffset = (spriteIndex % m_spritesPerRow) * m_spriteSize;
+			sprData.m_yOffset = (spriteIndex / m_spritesPerRow) * m_spriteSize;
 			sprData.m_surface = spriteAtlas;
 			sprData.m_lastUsage = m_currentFrame;
 			m_spritesIds.push_back(tempPos);
@@ -2533,6 +2578,12 @@ void SurfaceDirect3D11::drawSprite(Uint32 spriteId, Sint32 x, Sint32 y, Sint32 w
 	float miny = SDL_static_cast(float, y);
 	float maxy = SDL_static_cast(float, y + h);
 
+	if(m_spriteSize != 32)
+	{
+		// Source coordinates are in 32 pixel units.
+		Sint32 spriteScale = SDL_static_cast(Sint32, m_spriteSize / 32);
+		sx *= spriteScale; sy *= spriteScale; sw *= spriteScale; sh *= spriteScale;
+	}
 	sx += SDL_static_cast(Sint32, xOffset);
 	sy += SDL_static_cast(Sint32, yOffset);
 
@@ -2579,9 +2630,9 @@ void SurfaceDirect3D11::drawSpriteMask(Uint32 spriteId, Uint32 maskSpriteId, Sin
 	U64BD3D11Textures::iterator it = m_sprites.find(tempPos);
 	if(it == m_sprites.end())
 	{
-		if(m_sprites.size() >= MAX_SPRITES)
+		if(m_sprites.size() >= m_maxSprites)
 		{
-			while(++m_spriteChecker < MAX_SPRITES)
+			while(++m_spriteChecker < m_maxSprites)
 			{
 				Uint64 oldSpriteId = m_spritesIds.front();
 				it = m_sprites.find(oldSpriteId);
@@ -2622,13 +2673,13 @@ void SurfaceDirect3D11::drawSpriteMask(Uint32 spriteId, Uint32 maskSpriteId, Sin
 		{
 			Uint32 spriteIndex = SDL_static_cast(Uint32, m_sprites.size());
 			Uint32 spriteAtlas = spriteIndex / m_spritesPerAtlas;
-			spriteIndex = (spriteIndex % m_spritesPerAtlas) * 32;
+			spriteIndex = (spriteIndex % m_spritesPerAtlas);
 			if(spriteAtlas >= m_spritesAtlas.size())
 				return;
 
 			Direct3D11SpriteData& sprData = m_sprites[tempPos];
-			sprData.m_xOffset = spriteIndex % m_spritesPerModulo;
-			sprData.m_yOffset = (spriteIndex / m_spritesPerModulo) * 32;
+			sprData.m_xOffset = (spriteIndex % m_spritesPerRow) * m_spriteSize;
+			sprData.m_yOffset = (spriteIndex / m_spritesPerRow) * m_spriteSize;
 			sprData.m_surface = spriteAtlas;
 			sprData.m_lastUsage = m_currentFrame;
 			m_spritesIds.push_back(tempPos);
@@ -2658,6 +2709,12 @@ void SurfaceDirect3D11::drawSpriteMask(Uint32 spriteId, Uint32 maskSpriteId, Sin
 	float miny = SDL_static_cast(float, y);
 	float maxy = SDL_static_cast(float, y + h);
 
+	if(m_spriteSize != 32)
+	{
+		// Source coordinates are in 32 pixel units.
+		Sint32 spriteScale = SDL_static_cast(Sint32, m_spriteSize / 32);
+		sx *= spriteScale; sy *= spriteScale; sw *= spriteScale; sh *= spriteScale;
+	}
 	sx += SDL_static_cast(Sint32, xOffset);
 	sy += SDL_static_cast(Sint32, yOffset);
 

@@ -4194,10 +4194,71 @@ void Engine::drawDistanceEffect(ThingType* thing, Sint32 x, Sint32 y, Sint32 sca
 	}
 }
 
-unsigned char* Engine::LoadSprite(Uint32 spriteId, bool bgra)
+// The size of the sprites the renderer gets: the HD size (GameHDSprites) when
+// it can draw them, otherwise 32.
+Uint32 Engine::getSpriteSize()
+{
+	if(g_spriteManager.isHDLoaded() && m_surface && m_surface->supportsHDSprites())
+		return g_spriteManager.getHDSpriteSize();
+	return 32;
+}
+
+unsigned char* Engine::LoadSprite(Uint32 spriteId, bool bgra, bool nearest)
 {
 	if(spriteId == 0 || spriteId > g_spriteCounts)
 		return NULL;
+
+	if(g_spriteManager.isHDLoaded())
+	{
+		unsigned char* pixels = g_spriteManager.LoadSpriteHD(spriteId, bgra);
+		if(!pixels || getSpriteSize() > 32)
+			return pixels;
+
+		// Renderers without HD support get the HD sprite scaled back to 32x32
+		// (averaged, weighted by alpha so edges don't turn dark).
+		Uint32 size = g_spriteManager.getHDSpriteSize();
+		Uint32 factor = size / 32;
+		unsigned char* small = SDL_reinterpret_cast(unsigned char*, SDL_calloc(4096, sizeof(unsigned char)));
+		if(!small)
+		{
+			SDL_free(pixels);
+			return NULL;
+		}
+
+		for(Uint32 y = 0; y < 32; ++y)
+		{
+			for(Uint32 x = 0; x < 32; ++x)
+			{
+				Uint32 c0 = 0, c1 = 0, c2 = 0, alpha = 0;
+				for(Uint32 yy = 0; yy < factor; ++yy)
+				{
+					unsigned char* p = &pixels[((y * factor + yy) * size + x * factor) * 4];
+					for(Uint32 xx = 0; xx < factor; ++xx, p += 4)
+					{
+						c0 += p[0] * p[3]; c1 += p[1] * p[3]; c2 += p[2] * p[3]; alpha += p[3];
+					}
+				}
+
+				unsigned char* d = &small[(y * 32 + x) * 4];
+				if(nearest)
+				{
+					// Outfit masks must keep their exact colours: take the middle pixel.
+					unsigned char* p = &pixels[((y * factor + factor / 2) * size + x * factor + factor / 2) * 4];
+					d[0] = p[0]; d[1] = p[1]; d[2] = p[2]; d[3] = p[3];
+				}
+				else if(alpha > 0)
+				{
+					d[0] = SDL_static_cast(unsigned char, c0 / alpha);
+					d[1] = SDL_static_cast(unsigned char, c1 / alpha);
+					d[2] = SDL_static_cast(unsigned char, c2 / alpha);
+					// The old renderers only know solid or transparent pixels.
+					d[3] = (alpha / (factor * factor) >= 128 ? SDL_ALPHA_OPAQUE : SDL_ALPHA_TRANSPARENT);
+				}
+			}
+		}
+		SDL_free(pixels);
+		return small;
+	}
 
 	if(bgra)
 		return g_spriteManager.LoadSprite_BGRA(spriteId);
@@ -4210,13 +4271,15 @@ unsigned char* Engine::LoadSpriteMask(Uint32 spriteId, Uint32 maskSpriteId, Uint
 	if(!pixels)
 		return NULL;
 
-	unsigned char* tempPixels = LoadSprite(maskSpriteId, bgra);
+	unsigned char* tempPixels = LoadSprite(maskSpriteId, bgra, true);
 	if(!tempPixels)
 	{
 		SDL_free(pixels);
 		return NULL;
 	}
 
+	Uint32 spriteSize = getSpriteSize();
+	Uint32 pixelsSize = spriteSize * spriteSize * 4;
 	float hR, hG, hB, bR, bG, bB, lR, lG, lB, fR, fG, fB;
 	getOutfitColorFloat(SDL_static_cast(Uint8, outfitColor), hR, hG, hB);
 	getOutfitColorFloat(SDL_static_cast(Uint8, outfitColor >> 8), bR, bG, bB);
@@ -4224,7 +4287,7 @@ unsigned char* Engine::LoadSpriteMask(Uint32 spriteId, Uint32 maskSpriteId, Uint
 	getOutfitColorFloat(SDL_static_cast(Uint8, outfitColor >> 24), fR, fG, fB);
 	if(bgra)
 	{
-		for(Uint16 i = 0; i <= 4092; i += 4)
+		for(Uint32 i = 0; i < pixelsSize; i += 4)
 		{
 			if(tempPixels[i + 3] == SDL_ALPHA_OPAQUE)
 			{
@@ -4274,7 +4337,7 @@ unsigned char* Engine::LoadSpriteMask(Uint32 spriteId, Uint32 maskSpriteId, Uint
 	}
 	else
 	{
-		for(Uint16 i = 0; i <= 4092; i += 4)
+		for(Uint32 i = 0; i < pixelsSize; i += 4)
 		{
 			if(tempPixels[i + 3] == SDL_ALPHA_OPAQUE)
 			{

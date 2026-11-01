@@ -21,8 +21,10 @@
 
 #include "spriteManager.h"
 #include "game.h"
+#include "GUI/GUI_UTIL.h"
 #include "json/json.h"
 #include "lzma/LzmaLib.h"
+#include <zlib.h>
 
 SpriteManager g_spriteManager;
 
@@ -49,6 +51,95 @@ void SpriteManager::unloadSprites()
 	m_spriteSheets.clear();
 	m_spriteOffsets.clear();
 	m_sprLoaded = false;
+	unloadHDSprites();
+}
+
+void SpriteManager::unloadHDSprites()
+{
+	if(m_hdSprites)
+	{
+		SDL_RWclose(m_hdSprites);
+		m_hdSprites = NULL;
+	}
+	m_hdOffsets.clear();
+	m_hdSpriteSize = 32;
+}
+
+// HD sprites file (made by build_hdspr.py):
+//   u32 signature (same as Tibia.spr), u32 magic 'HSPR', u16 version, u16 sprite size,
+//   u32 count, u32 offset[count] (0 = empty), per sprite: u32 size + zlib(size*size RGBA).
+bool SpriteManager::loadHDSprites(const char* filename)
+{
+	unloadHDSprites();
+	SDL_RWops* file = SDL_RWFromFile(filename, "rb");
+	if(!file)
+		return false;
+
+	Uint32 signature = SDL_ReadLE32(file);
+	Uint32 magic = SDL_ReadLE32(file);
+	Uint16 version = SDL_ReadLE16(file);
+	Uint16 spriteSize = SDL_ReadLE16(file);
+	Uint32 count = SDL_ReadLE32(file);
+	if(magic != 0x52505348 || version != 1 || spriteSize <= 32 || spriteSize > 256 || (spriteSize % 32) != 0)
+	{
+		UTIL_messageBox("The Forgotten Client - Error", "The HD sprites file is not valid, the normal sprites are used.");
+		SDL_RWclose(file);
+		return false;
+	}
+
+	if(signature != g_sprRevision || count != g_spriteCounts)
+	{
+		UTIL_messageBox("The Forgotten Client - Error", "The HD sprites file does not belong to this Tibia.spr, the normal sprites are used.");
+		SDL_RWclose(file);
+		return false;
+	}
+
+	m_hdOffsets.resize(count);
+	for(Uint32 i = 0; i < count; ++i)
+		m_hdOffsets[i] = SDL_ReadLE32(file);
+
+	m_hdSprites = file;
+	m_hdSpriteSize = spriteSize;
+	return true;
+}
+
+unsigned char* SpriteManager::LoadSpriteHD(Uint32 spriteId, bool bgra)
+{
+	if(!m_hdSprites || spriteId == 0 || spriteId > m_hdOffsets.size())
+		return NULL;
+
+	size_t pixelsSize = SDL_static_cast(size_t, m_hdSpriteSize) * m_hdSpriteSize * 4;
+	unsigned char* pixels = SDL_reinterpret_cast(unsigned char*, SDL_calloc(pixelsSize, sizeof(unsigned char)));
+	if(!pixels)
+		return NULL;
+
+	Uint32 offset = m_hdOffsets[spriteId - 1];
+	if(offset == 0)
+		return pixels;
+
+	SDL_RWseek(m_hdSprites, offset, RW_SEEK_SET);
+	Uint32 compressedSize = SDL_ReadLE32(m_hdSprites);
+	std::vector<unsigned char> compressed(compressedSize);
+	if(compressedSize == 0 || SDL_RWread(m_hdSprites, &compressed[0], 1, compressedSize) != compressedSize)
+		return pixels;
+
+	uLongf destSize = SDL_static_cast(uLongf, pixelsSize);
+	if(uncompress(pixels, &destSize, &compressed[0], compressedSize) != Z_OK || destSize != pixelsSize)
+	{
+		SDL_memset(pixels, 0, pixelsSize);
+		return pixels;
+	}
+
+	if(bgra)
+	{
+		for(size_t i = 0; i < pixelsSize; i += 4)
+		{
+			unsigned char r = pixels[i];
+			pixels[i] = pixels[i + 2];
+			pixels[i + 2] = r;
+		}
+	}
+	return pixels;
 }
 
 void SpriteManager::manageSprites(std::vector<Uint32>& fromSprites, std::vector<Uint32>& toSprites, Uint8& width, Uint8& height)

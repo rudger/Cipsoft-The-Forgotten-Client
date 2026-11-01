@@ -81,6 +81,13 @@ class SpriteManager
 		unsigned char* LoadSprite_RGBA(Uint32 spriteId);
 		unsigned char* LoadSprite_BGRA(Uint32 spriteId);
 
+		// HD sprites (GameHDSprites): Tibia96.spr next to Tibia.spr.
+		bool loadHDSprites(const char* filename);
+		void unloadHDSprites();
+		unsigned char* LoadSpriteHD(Uint32 spriteId, bool bgra);
+		SDL_INLINE Uint32 getHDSpriteSize() {return m_hdSpriteSize;}
+		SDL_INLINE bool isHDLoaded() {return m_hdSpriteSize > 32;}
+
 		bool loadSprites(const char* filename);
 		bool loadCatalog(const char* filename);
 
@@ -89,6 +96,9 @@ class SpriteManager
 		std::vector<SpriteSheet> m_spriteSheets;
 		std::vector<SpriteOffset> m_spriteOffsets;
 		SDL_RWops* m_cachedSprites = NULL;
+		SDL_RWops* m_hdSprites = NULL;
+		std::vector<Uint32> m_hdOffsets;
+		Uint32 m_hdSpriteSize = 32;
 
 		bool m_sprLoaded = false;
 		bool m_sprCached = false;
