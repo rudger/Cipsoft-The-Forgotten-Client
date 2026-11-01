@@ -4218,8 +4218,8 @@ unsigned char* Engine::LoadSprite(Uint32 spriteId, bool bgra, bool nearest)
 		// (averaged, weighted by alpha so edges don't turn dark).
 		Uint32 size = g_spriteManager.getHDSpriteSize();
 		Uint32 factor = size / 32;
-		unsigned char* small = SDL_reinterpret_cast(unsigned char*, SDL_calloc(4096, sizeof(unsigned char)));
-		if(!small)
+		unsigned char* smallPixels = SDL_reinterpret_cast(unsigned char*, SDL_calloc(4096, sizeof(unsigned char)));
+		if(!smallPixels)
 		{
 			SDL_free(pixels);
 			return NULL;
@@ -4239,7 +4239,7 @@ unsigned char* Engine::LoadSprite(Uint32 spriteId, bool bgra, bool nearest)
 					}
 				}
 
-				unsigned char* d = &small[(y * 32 + x) * 4];
+				unsigned char* d = &smallPixels[(y * 32 + x) * 4];
 				if(nearest)
 				{
 					// Outfit masks must keep their exact colours: take the middle pixel.
@@ -4257,7 +4257,7 @@ unsigned char* Engine::LoadSprite(Uint32 spriteId, bool bgra, bool nearest)
 			}
 		}
 		SDL_free(pixels);
-		return small;
+		return smallPixels;
 	}
 
 	if(bgra)
