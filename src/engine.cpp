@@ -4211,7 +4211,28 @@ unsigned char* Engine::LoadSprite(Uint32 spriteId, bool bgra, bool nearest)
 	if(g_spriteManager.isHDLoaded())
 	{
 		unsigned char* pixels = g_spriteManager.LoadSpriteHD(spriteId, bgra);
-		if(!pixels || getSpriteSize() > 32)
+		if(!pixels)
+		{
+			// The HD sprite can't be read: use the normal one, made bigger for
+			// renderers that draw HD sprites.
+			unsigned char* normal = (bgra ? g_spriteManager.LoadSprite_BGRA(spriteId) : g_spriteManager.LoadSprite_RGBA(spriteId));
+			Uint32 size = getSpriteSize();
+			if(!normal || size <= 32)
+				return normal;
+
+			Uint32 factor = size / 32;
+			pixels = SDL_reinterpret_cast(unsigned char*, SDL_calloc(SDL_static_cast(size_t, size) * size * 4, sizeof(unsigned char)));
+			if(pixels)
+			{
+				for(Uint32 y = 0; y < size; ++y)
+					for(Uint32 x = 0; x < size; ++x)
+						SDL_memcpy(&pixels[(y * size + x) * 4], &normal[((y / factor) * 32 + x / factor) * 4], 4);
+			}
+			SDL_free(normal);
+			return pixels;
+		}
+
+		if(getSpriteSize() > 32)
 			return pixels;
 
 		// Renderers without HD support get the HD sprite scaled back to 32x32

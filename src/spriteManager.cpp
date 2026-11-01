@@ -22,6 +22,7 @@
 #include "spriteManager.h"
 #include "game.h"
 #include "GUI/GUI_UTIL.h"
+#include "util.h"
 #include "json/json.h"
 #include "lzma/LzmaLib.h"
 #include <zlib.h>
@@ -98,6 +99,29 @@ bool SpriteManager::loadHDSprites(const char* filename)
 	for(Uint32 i = 0; i < count; ++i)
 		m_hdOffsets[i] = SDL_ReadLE32(file);
 
+	// An incomplete download makes every sprite empty: check that the last
+	// sprite is inside the file.
+	Sint64 fileSize = SDL_RWsize(file);
+	Uint32 lastOffset = 0;
+	for(Uint32 i = 0; i < count; ++i)
+		lastOffset = UTIL_max<Uint32>(lastOffset, m_hdOffsets[i]);
+	bool complete = (fileSize > 0 && lastOffset + 4 <= SDL_static_cast(Uint64, fileSize));
+	if(complete && lastOffset > 0)
+	{
+		SDL_RWseek(file, lastOffset, RW_SEEK_SET);
+		Uint32 lastSize = SDL_ReadLE32(file);
+		complete = (SDL_static_cast(Uint64, lastOffset) + 4 + lastSize <= SDL_static_cast(Uint64, fileSize));
+	}
+
+	if(!complete)
+	{
+		SDL_snprintf(g_buffer, sizeof(g_buffer), "The HD sprites file '%s' is incomplete or damaged (%lld bytes), the normal sprites are used.\n\nDownload Tibia96.spr again.", filename, SDL_static_cast(long long, fileSize));
+		UTIL_messageBox("The Forgotten Client - Error", g_buffer);
+		m_hdOffsets.clear();
+		SDL_RWclose(file);
+		return false;
+	}
+
 	m_hdSprites = file;
 	m_hdSpriteSize = spriteSize;
 	return true;
@@ -117,17 +141,27 @@ unsigned char* SpriteManager::LoadSpriteHD(Uint32 spriteId, bool bgra)
 	if(offset == 0)
 		return pixels;
 
+	// A sprite that can't be read gives NULL, then the normal sprite is used.
 	SDL_RWseek(m_hdSprites, offset, RW_SEEK_SET);
 	Uint32 compressedSize = SDL_ReadLE32(m_hdSprites);
+	if(compressedSize == 0 || compressedSize > pixelsSize * 2)
+	{
+		SDL_free(pixels);
+		return NULL;
+	}
+
 	std::vector<unsigned char> compressed(compressedSize);
-	if(compressedSize == 0 || SDL_RWread(m_hdSprites, &compressed[0], 1, compressedSize) != compressedSize)
-		return pixels;
+	if(SDL_RWread(m_hdSprites, &compressed[0], 1, compressedSize) != compressedSize)
+	{
+		SDL_free(pixels);
+		return NULL;
+	}
 
 	uLongf destSize = SDL_static_cast(uLongf, pixelsSize);
 	if(uncompress(pixels, &destSize, &compressed[0], compressedSize) != Z_OK || destSize != pixelsSize)
 	{
-		SDL_memset(pixels, 0, pixelsSize);
-		return pixels;
+		SDL_free(pixels);
+		return NULL;
 	}
 
 	if(bgra)
