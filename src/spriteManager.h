@@ -87,6 +87,8 @@ class SpriteManager
 		unsigned char* LoadSpriteHD(Uint32 spriteId, bool bgra);
 		SDL_INLINE Uint32 getHDSpriteSize() {return m_hdSpriteSize;}
 		SDL_INLINE bool isHDLoaded() {return m_hdSpriteSize > 32;}
+		// HD sprites unpacked since the last call (walk diagnostics)
+		SDL_INLINE Uint32 takeHDDecodes() {Uint32 n = m_hdDecodes; m_hdDecodes = 0; return n;}
 
 		bool loadSprites(const char* filename);
 		bool loadCatalog(const char* filename);
@@ -96,7 +98,8 @@ class SpriteManager
 		std::vector<SpriteSheet> m_spriteSheets;
 		std::vector<SpriteOffset> m_spriteOffsets;
 		SDL_RWops* m_cachedSprites = NULL;
-		SDL_RWops* m_hdSprites = NULL;
+		std::vector<unsigned char> m_hdData;
+		Uint32 m_hdDecodes = 0;
 		std::vector<Uint32> m_hdOffsets;
 		Uint32 m_hdSpriteSize = 32;
 

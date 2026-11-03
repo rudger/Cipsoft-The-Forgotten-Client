@@ -24,6 +24,8 @@
 #include "cursors.h"
 #include "connection.h"
 #include "http.h"
+#include "spriteManager.h"
+#include "GUI_Elements/GUI_Log.h"
 
 #include <curl/curl.h>
 #include <cstdarg>
@@ -38,6 +40,8 @@ Connection* g_connection = NULL;
 Engine g_engine;
 extern Game g_game;
 extern Http g_http;
+extern SpriteManager g_spriteManager;
+extern GUI_Log g_logger;
 
 KeyRepeat g_keyRepeat;
 FPSmanager g_fpsmanager;
@@ -381,6 +385,15 @@ int main(int argc, char* argv[])
 			
 			g_frameDiff = SDL_GetTicks() - g_frameTime;
 			g_frameTime = SDL_GetTicks();
+			{
+				// Walk diagnostics: a slow frame (and how many HD sprites were unpacked in it)
+				Uint32 hdDecodes = g_spriteManager.takeHDDecodes();
+				if(g_engine.isIngame() && g_frameDiff > 40 && g_frameDiff < 5000)
+				{
+					Sint32 len = SDL_snprintf(g_buffer, sizeof(g_buffer), "[Frame] %u ms (HD sprites unpacked: %u)", SDL_static_cast(Uint32, g_frameDiff), hdDecodes);
+					g_logger.addLog(LOG_CATEGORY_WARNING, std::string(g_buffer, SDL_static_cast(size_t, len)));
+				}
+			}
 			
 			SDL_CheckKeyRepeat();
 			while(SDL_PollEvent(&event))

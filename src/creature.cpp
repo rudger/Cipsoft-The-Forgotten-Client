@@ -25,6 +25,7 @@
 #include "map.h"
 #include "tile.h"
 #include "game.h"
+#include <cstdarg>
 
 double Creature::speedA = 857.36;
 double Creature::speedB = 261.29;
@@ -36,6 +37,22 @@ extern ThingManager g_thingManager;
 extern LightSystem g_light;
 extern Game g_game;
 extern Uint32 g_frameTime;
+
+// Walk diagnostics (terminal, Ctrl+T): only written when a step of the local
+// player is late, so the cause of a stutter can be found.
+#include "GUI_Elements/GUI_Log.h"
+extern GUI_Log g_logger;
+extern Uint16 g_ping;
+static Uint32 walkDiagLastStop = 0;
+static void walkDiagLog(const char* format, ...)
+{
+	char text[256];
+	va_list args;
+	va_start(args, format);
+	SDL_vsnprintf(text, sizeof(text), format, args);
+	va_end(args);
+	g_logger.addLog(LOG_CATEGORY_WARNING, std::string(text));
+}
 
 void Creature::preMove(const Position& fromPos, const Position& toPos)
 {
@@ -166,11 +183,21 @@ void Creature::move(const Position& fromPos, const Position& toPos, Tile* oldTil
 	{
 		if(m_preWalking)
 		{
+			if(m_isLocalCreature && g_frameTime > m_walkEndTime + 20)
+				walkDiagLog("[Walk] stood still %u ms waiting for the server to confirm the step (step %u ms, ping %u ms)", g_frameTime - m_walkEndTime, m_walkEndTime - m_walkStartTime, SDL_static_cast(Uint32, g_ping));
 			m_preWalking = false;
 			return;
 		}
 		else if(m_isLocalCreature)
 			g_game.checkServerMovement(m_walkDirection);
+	}
+
+	if(m_isLocalCreature && walkDiagLastStop != 0)
+	{
+		Uint32 gap = g_frameTime - walkDiagLastStop;
+		if(gap > 20 && gap < 1000)
+			walkDiagLog("[Walk] next step started %u ms after the previous one ended (client)", gap);
+		walkDiagLastStop = 0;
 	}
 
 	Sint32 groundSpeed = SDL_static_cast(Sint32, newTile->getGroundSpeed());
@@ -189,6 +216,8 @@ void Creature::move(const Position& fromPos, const Position& toPos, Tile* oldTil
 
 void Creature::stopMove()
 {
+	if(m_isLocalCreature && m_walking)
+		walkDiagLastStop = g_frameTime;
 	m_walking = false;
 	m_preWalking = false;
 	m_updateTime = 0;
