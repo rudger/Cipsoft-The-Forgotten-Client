@@ -2550,7 +2550,9 @@ void ProtocolGame::parsePlayerData(InputMessage& msg)
 	g_game.setPlayerLevel(level, levelPercent);
 	g_game.setPlayerStamina(stamina);
 	g_game.setPlayerSoul(soul);
-	g_game.setPlayerBaseSpeed(baseSpeed);
+	//Servers without base skills don't send the speed here, the creature speed is used (see Creature::setSpeed)
+	if(g_game.hasGameFeature(GAME_FEATURE_BASE_SKILLS))
+		g_game.setPlayerBaseSpeed(baseSpeed);
 	g_game.setPlayerRegeneration(regeneration);
 	g_game.setPlayerOfflineTraining(training);
 
