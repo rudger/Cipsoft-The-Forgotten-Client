@@ -151,10 +151,12 @@ ItemUI* ItemUI::createItemUI(ThingType* type, Uint16 count, Sint32 phase)
 
 void ItemUI::setDuration(Uint16 duration)
 {
-	// 0x8000 is set while the time runs (e.g. a worn ring or a lit torch).
+	// 0x8000 is set while the time runs (e.g. a worn ring or a lit torch),
+	// 0x4000 means the value is the charges left (e.g. an amulet).
 	m_hasDuration = true;
+	m_durationCharges = ((duration & 0xC000) == 0x4000);
 	m_durationRunning = ((duration & 0x8000) != 0);
-	m_duration = (duration & 0x7FFF);
+	m_duration = (duration & 0x3FFF);
 	m_durationTime = g_frameTime;
 }
 
@@ -289,6 +291,11 @@ void ItemUI::render(Sint32 posX, Sint32 posY, Sint32 scaled)
 	g_engine.drawItem(m_thingType, posX, posY, scaled, m_xPattern, m_yPattern, m_zPattern, animation);
 	if(m_displayCount)
 		g_engine.drawFont(CLIENT_FONT_OUTLINED, posX + scaled - 1, posY + scaled - 11, m_stringCount, 192, 192, 192, CLIENT_FONT_ALIGN_RIGHT);
+	else if(m_hasDuration && m_durationCharges && m_duration > 0)
+	{
+		Sint32 len = SDL_snprintf(g_buffer, sizeof(g_buffer), "%u", SDL_static_cast(Uint32, m_duration));
+		g_engine.drawFont(CLIENT_FONT_OUTLINED, posX + scaled - 1, posY + scaled - 11, std::string(g_buffer, SDL_static_cast(size_t, len)), 192, 192, 192, CLIENT_FONT_ALIGN_RIGHT);
+	}
 	else if(m_hasDuration && m_duration > 0)
 	{
 		Sint32 seconds = SDL_static_cast(Sint32, m_duration);

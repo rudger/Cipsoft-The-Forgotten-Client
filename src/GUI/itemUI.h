@@ -75,6 +75,7 @@ class ItemUI
 		Uint16 m_duration = 0;
 		bool m_hasDuration = false;
 		bool m_durationRunning = false;
+		bool m_durationCharges = false;
 };
 
 #endif /* __FILE_ITEM_h_ */
