@@ -152,11 +152,14 @@ ItemUI* ItemUI::createItemUI(ThingType* type, Uint16 count, Sint32 phase)
 void ItemUI::setDuration(Uint16 duration)
 {
 	// 0x8000 is set while the time runs (e.g. a worn ring or a lit torch),
-	// 0x4000 means the value is the charges left (e.g. an amulet).
+	// 0x4000 alone means the value is the charges left (e.g. an amulet).
+	// Both set (0xC000): a long running time in minutes (e.g. a furniture package).
 	m_hasDuration = true;
 	m_durationCharges = ((duration & 0xC000) == 0x4000);
 	m_durationRunning = ((duration & 0x8000) != 0);
-	m_duration = (duration & 0x3FFF);
+	m_duration = SDL_static_cast(Uint32, duration & 0x3FFF);
+	if((duration & 0xC000) == 0xC000)
+		m_duration *= 60;
 	m_durationTime = g_frameTime;
 }
 

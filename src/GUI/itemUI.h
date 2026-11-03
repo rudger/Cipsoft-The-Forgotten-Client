@@ -72,7 +72,7 @@ class ItemUI
 		bool m_displayCount = false;
 
 		Uint32 m_durationTime = 0;
-		Uint16 m_duration = 0;
+		Uint32 m_duration = 0;
 		bool m_hasDuration = false;
 		bool m_durationRunning = false;
 		bool m_durationCharges = false;
